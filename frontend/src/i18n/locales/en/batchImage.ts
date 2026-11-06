@@ -1,6 +1,8 @@
 export default {
   batchImage: {
     columns: {
+      customId: 'Custom ID',
+      prompt: 'Prompt',
       taskName: 'Task name',
       model: 'Model',
       apiKey: 'API key',
@@ -135,6 +137,7 @@ export default {
       refFileTooLarge: '{name} exceeds 10MB and was ignored.',
     },
     guide: {
+      endpointPlaceholder: '[Your Sub2API API endpoint]',
       title: 'Batch Image Generation Guide',
       uiTitle: 'How to use this page',
       step1: '1. Select a Gemini API key with batch image generation enabled. The model list shows the models available to that key’s group.',

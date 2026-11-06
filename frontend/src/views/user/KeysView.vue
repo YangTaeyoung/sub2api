@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <TablePageLayout>
+    <TablePageLayout class="keys-table-layout">
       <template #filters>
         <div class="flex flex-col gap-3">
           <div class="flex flex-wrap items-center gap-3">
@@ -99,6 +99,8 @@
       <template #table>
         <DataTable
           :columns="columns"
+          :sticky-first-column="false"
+          :sticky-actions-column="false"
           :data="apiKeys"
           :loading="loading"
           selectable
@@ -177,7 +179,7 @@
                 <span v-else class="text-sm text-gray-400 dark:text-dark-500">{{
                   t('keys.noGroup')
                 }}</span>
-                <span class="text-xs text-gray-500 dark:text-gray-400">{{ t('keys.selectGroup') }}</span>
+                <span class="sr-only">{{ t('keys.selectGroup') }}</span>
                 <svg
                   class="h-3.5 w-3.5 text-gray-400 opacity-60 transition-opacity group-hover/dropdown:opacity-100"
                   fill="none"
@@ -395,25 +397,31 @@
               <!-- Use Key Button -->
               <button
                 @click="openUseKeyModal(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-900/20 dark:hover:text-green-400"
+                :aria-label="t('keys.useKey')"
+                :title="t('keys.useKey')"
+                class="keys-row-action flex items-center justify-center rounded-md p-2 text-gray-500 transition-colors hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-900/20 dark:hover:text-green-400"
               >
                 <Icon name="terminal" size="sm" />
-                <span class="text-xs">{{ t('keys.useKey') }}</span>
+                <span class="sr-only">{{ t('keys.useKey') }}</span>
               </button>
               <!-- Import to CC Switch Button -->
               <button
                 v-if="!publicSettings?.hide_ccs_import_button"
                 @click="importToCcswitch(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
+                :aria-label="t('keys.importToCcSwitch')"
+                :title="t('keys.importToCcSwitch')"
+                class="keys-row-action flex items-center justify-center rounded-md p-2 text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
               >
                 <Icon name="upload" size="sm" />
-                <span class="text-xs">{{ t('keys.importToCcSwitch') }}</span>
+                <span class="sr-only">{{ t('keys.importToCcSwitch') }}</span>
               </button>
               <!-- Toggle Status Button -->
               <button
                 @click="toggleKeyStatus(row)"
+                :aria-label="row.status === 'active' ? t('keys.disable') : t('keys.enable')"
+                :title="row.status === 'active' ? t('keys.disable') : t('keys.enable')"
                 :class="[
-                  'flex flex-col items-center gap-0.5 rounded-lg p-1.5 transition-colors',
+                  'keys-row-action flex items-center justify-center rounded-md p-2 transition-colors',
                   row.status === 'active'
                     ? 'text-gray-500 hover:bg-yellow-50 hover:text-yellow-600 dark:hover:bg-yellow-900/20 dark:hover:text-yellow-400'
                     : 'text-gray-500 hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-900/20 dark:hover:text-green-400'
@@ -421,23 +429,27 @@
               >
                 <Icon v-if="row.status === 'active'" name="ban" size="sm" />
                 <Icon v-else name="checkCircle" size="sm" />
-                <span class="text-xs">{{ row.status === 'active' ? t('keys.disable') : t('keys.enable') }}</span>
+                <span class="sr-only">{{ row.status === 'active' ? t('keys.disable') : t('keys.enable') }}</span>
               </button>
               <!-- Edit Button -->
               <button
                 @click="editKey(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-primary-600 dark:hover:bg-dark-700 dark:hover:text-primary-400"
+                :aria-label="t('common.edit')"
+                :title="t('common.edit')"
+                class="keys-row-action flex items-center justify-center rounded-md p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-primary-600 dark:hover:bg-dark-700 dark:hover:text-primary-400"
               >
                 <Icon name="edit" size="sm" />
-                <span class="text-xs">{{ t('common.edit') }}</span>
+                <span class="sr-only">{{ t('common.edit') }}</span>
               </button>
               <!-- Delete Button -->
               <button
                 @click="confirmDelete(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                :aria-label="t('common.delete')"
+                :title="t('common.delete')"
+                class="keys-row-action flex items-center justify-center rounded-md p-2 text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
               >
                 <Icon name="trash" size="sm" />
-                <span class="text-xs">{{ t('common.delete') }}</span>
+                <span class="sr-only">{{ t('common.delete') }}</span>
               </button>
             </div>
           </template>
@@ -1279,7 +1291,7 @@ const allColumns = computed<Column[]>(() => [
 ])
 
 const ALWAYS_VISIBLE_COLUMNS = new Set(['name', 'actions'])
-const DEFAULT_HIDDEN_COLUMNS = ['id', 'rate_limit', 'last_used_at', 'last_used_ip']
+const DEFAULT_HIDDEN_COLUMNS = ['id', 'rate_limit', 'last_used_at', 'last_used_ip', 'current_concurrency', 'expires_at', 'created_at']
 const HIDDEN_COLUMNS_KEY = 'api-key-hidden-columns'
 const COLUMN_SETTINGS_VERSION_KEY = 'api-key-column-settings-version'
 const COLUMN_SETTINGS_VERSION = 3
@@ -2093,3 +2105,16 @@ onUnmounted(() => {
   if (resetTimer) clearInterval(resetTimer)
 })
 </script>
+
+<style scoped>
+.keys-table-layout { height: auto; }
+.keys-table-layout :deep(.layout-section-scrollable) { flex: none; }
+.keys-table-layout :deep(.table-scroll-container) { height: auto; background: var(--surface-panel); }
+.keys-table-layout :deep(.table-wrapper) { flex: none; max-height: calc(100dvh - 300px); scrollbar-gutter: auto; }
+.keys-table-layout :deep(.table-wrapper table) { min-width: 100%; }
+.keys-table-layout :deep(.table-wrapper td) { vertical-align: middle; }
+.keys-table-layout :deep(.table-wrapper th) { white-space: nowrap; }
+.keys-row-action { width: 30px; height: 30px; }
+@media (max-width: 1023px) { .keys-table-layout :deep(.table-wrapper) { max-height: none; } }
+@media (pointer: coarse) { .keys-row-action { width: 40px; height: 44px; } }
+</style>

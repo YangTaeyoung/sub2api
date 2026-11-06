@@ -1,5 +1,6 @@
 export default {
   common: {
+    timeLabel: 'Time',
     loading: 'Loading...',
     submitting: 'Submitting...',
     justNow: 'just now',
@@ -134,6 +135,7 @@ export default {
   },
 
   legal: {
+    documentTitle: 'Legal document',
     loadFailed: 'Failed to load document',
     retryLater: 'Refresh the page and try again later.',
     notFound: 'Document not found',

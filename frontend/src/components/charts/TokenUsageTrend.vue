@@ -1,228 +1,95 @@
 <template>
-  <div class="card p-4">
-    <h3 class="mb-4 text-sm font-semibold text-gray-900 dark:text-white">
-      {{ t('admin.dashboard.tokenUsageTrend') }}
-    </h3>
-    <div v-if="loading" class="flex h-48 items-center justify-center">
-      <LoadingSpinner />
+  <section class="card token-trend-panel">
+    <div class="trend-heading">
+      <div><h3>{{ t('admin.dashboard.usageOverTime') }}</h3><p v-if="trendData.length && trendData.length < 3">{{ t('admin.dashboard.observedBuckets', { count: trendData.length }) }}</p></div>
+      <div class="trend-controls"><div class="trend-switch" role="group" :aria-label="t('admin.dashboard.tokenUsageTrend')"><button type="button" :aria-pressed="mode === 'tokens'" :class="{ selected: mode === 'tokens' }" @click="mode = 'tokens'">{{ t('admin.dashboard.tokens') }}</button><button type="button" :aria-pressed="mode === 'cache'" :class="{ selected: mode === 'cache' }" @click="mode = 'cache'">{{ t('usage.cacheHitRate') }}</button></div><slot name="controls" /></div>
     </div>
-    <div v-else-if="trendData.length > 0 && chartData" class="h-48">
-      <Line :data="chartData" :options="lineOptions" />
-    </div>
-    <div
-      v-else
-      class="flex h-48 items-center justify-center text-sm text-gray-500 dark:text-gray-400"
-    >
-      {{ t('admin.dashboard.noDataAvailable') }}
-    </div>
-  </div>
+    <div v-if="loading" class="skeleton trend-canvas" aria-busy="true" :aria-label="t('common.loading')" />
+    <template v-else-if="chartData">
+      <div class="trend-canvas"><component :is="singleBucket ? Bar : Line" :data="chartData" :options="lineOptions" role="img" :aria-label="t('admin.dashboard.tokenUsageTrend')" /></div>
+      <div class="trend-legend"><template v-for="(dataset, index) in chartData.datasets" :key="dataset.label"><button v-if="mode === 'cache' ? index === 4 : index < 4" type="button" :aria-pressed="!hiddenSeries.has(index)" :class="{ muted: hiddenSeries.has(index) }" @click="toggleSeries(index)"><i :style="{ backgroundColor: dataset.borderColor }" />{{ dataset.label }}</button></template></div>
+      <details class="trend-data"><summary>{{ t('admin.dashboard.viewTokenData') }}</summary><div class="trend-table-scroll"><table><thead><tr><th>{{ t('common.timeLabel') }}</th><th>{{ t('admin.dashboard.input') }}</th><th>{{ t('admin.dashboard.output') }}</th><th>{{ t('usage.cacheCreationTokensLabel') }}</th><th>{{ t('usage.cacheReadTokensLabel') }}</th></tr></thead><tbody><tr v-for="point in trendData" :key="point.date"><td>{{ point.date }}</td><td>{{ formatTokens(point.input_tokens) }}</td><td>{{ formatTokens(point.output_tokens) }}</td><td>{{ formatTokens(point.cache_creation_tokens) }}</td><td>{{ formatTokens(point.cache_read_tokens) }}</td></tr></tbody></table></div></details>
+    </template>
+    <div v-else class="trend-empty">{{ t('admin.dashboard.noDataAvailable') }}</div>
+  </section>
 </template>
-
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-} from 'chart.js'
-import { Line } from 'vue-chartjs'
-import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler } from 'chart.js'
+import { Line, Bar } from 'vue-chartjs'
 import type { TrendDataPoint } from '@/types'
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-)
-
+import { useChartTheme } from '@/composables/useChartTheme'
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler)
 const { t } = useI18n()
-
-const props = defineProps<{
-  trendData: TrendDataPoint[]
-  loading?: boolean
-}>()
-
-const isDarkMode = computed(() => {
-  return document.documentElement.classList.contains('dark')
-})
-
-const chartColors = computed(() => ({
-  text: isDarkMode.value ? '#e5e7eb' : '#374151',
-  grid: isDarkMode.value ? '#374151' : '#e5e7eb',
-  input: '#3b82f6',
-  output: '#10b981',
-  cacheCreation: '#f59e0b',
-  cacheRead: '#06b6d4',
-  cacheHitRate: '#8b5cf6'
-}))
-
+const props = defineProps<{ trendData: TrendDataPoint[]; loading?: boolean }>()
+const { colors, fontFamily } = useChartTheme()
+const mode = ref<'tokens' | 'cache'>('tokens')
+const hiddenSeries = ref(new Set<number>())
+const singleBucket = computed(() => props.trendData.length === 1)
+const toggleSeries = (index: number) => { const next = new Set(hiddenSeries.value); if (next.has(index)) next.delete(index); else next.add(index); hiddenSeries.value = next }
+const formatTokens = (value = 0): string => new Intl.NumberFormat(undefined, { notation: Math.abs(value) >= 1000 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(value)
+const formatCost = (value = 0): string => value.toFixed(value < 1 ? 4 : 2)
+const formatTimeTick = (value: string): string => /\d{4}-\d{2}-\d{2}.\d{2}/.test(value) ? value.slice(11, 16) : value.slice(5)
 const chartData = computed(() => {
-  if (!props.trendData?.length) return null
-
-  return {
-    labels: props.trendData.map((d) => d.date),
-    datasets: [
-      {
-        label: 'Input',
-        data: props.trendData.map((d) => d.input_tokens),
-        borderColor: chartColors.value.input,
-        backgroundColor: `${chartColors.value.input}20`,
-        fill: true,
-        tension: 0.3
-      },
-      {
-        label: 'Output',
-        data: props.trendData.map((d) => d.output_tokens),
-        borderColor: chartColors.value.output,
-        backgroundColor: `${chartColors.value.output}20`,
-        fill: true,
-        tension: 0.3
-      },
-      {
-        label: 'Cache Creation',
-        data: props.trendData.map((d) => d.cache_creation_tokens),
-        borderColor: chartColors.value.cacheCreation,
-        backgroundColor: `${chartColors.value.cacheCreation}20`,
-        fill: true,
-        tension: 0.3
-      },
-      {
-        label: 'Cache Read',
-        data: props.trendData.map((d) => d.cache_read_tokens),
-        borderColor: chartColors.value.cacheRead,
-        backgroundColor: `${chartColors.value.cacheRead}20`,
-        fill: true,
-        tension: 0.3
-      },
-      {
-        label: 'Cache Hit Rate',
-        data: props.trendData.map((d) => {
-          const totalPromptTokens = d.input_tokens + d.cache_read_tokens + d.cache_creation_tokens
-          return totalPromptTokens > 0 ? (d.cache_read_tokens / totalPromptTokens) * 100 : 0
-        }),
-        borderColor: chartColors.value.cacheHitRate,
-        backgroundColor: `${chartColors.value.cacheHitRate}20`,
-        borderDash: [5, 5],
-        fill: false,
-        tension: 0.3,
-        yAxisID: 'yPercent'
-      }
-    ]
-  }
+  if (!props.trendData.length) return null
+  const series = [
+    { label: t('admin.dashboard.input'), key: 'input_tokens', color: colors.value.input },
+    { label: t('admin.dashboard.output'), key: 'output_tokens', color: colors.value.output },
+    { label: t('usage.cacheCreationTokensLabel'), key: 'cache_creation_tokens', color: colors.value.cacheCreation },
+    { label: t('usage.cacheReadTokensLabel'), key: 'cache_read_tokens', color: colors.value.cacheRead },
+    { label: t('usage.cacheHitRate'), key: 'rate', color: colors.value.cacheHitRate }
+  ]
+  return { labels: props.trendData.map(point => point.date), datasets: series.map((series, index) => ({
+    label: series.label,
+    data: props.trendData.map(point => { if (series.key !== 'rate') return Number(point[series.key as keyof TrendDataPoint]) || 0; const total = point.input_tokens + point.cache_read_tokens + point.cache_creation_tokens; return total > 0 ? point.cache_read_tokens / total * 100 : 0 }),
+    borderColor: series.color, backgroundColor: singleBucket.value ? series.color : `${series.color}0d`, borderWidth: singleBucket.value ? 0 : 2,
+    borderRadius: singleBucket.value ? 3 : 0, maxBarThickness: 32, fill: !singleBucket.value && index === 0, tension: 0.15,
+    pointRadius: 0, pointHoverRadius: 4, pointHitRadius: 12,
+    hidden: (mode.value === 'cache' ? index !== 4 : index === 4) || hiddenSeries.value.has(index), yAxisID: index === 4 ? 'yPercent' : 'y'
+  })) }
 })
-
 const lineOptions = computed(() => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  interaction: {
-    intersect: false,
-    mode: 'index' as const
-  },
-  plugins: {
-    legend: {
-      position: 'top' as const,
-      labels: {
-        color: chartColors.value.text,
-        usePointStyle: true,
-        pointStyle: 'circle',
-        padding: 15,
-        font: {
-          size: 11
-        }
-      }
-    },
-    tooltip: {
-      callbacks: {
-        label: (context: any) => {
-          if (context.dataset.yAxisID === 'yPercent') {
-            return `${context.dataset.label}: ${context.raw.toFixed(1)}%`
-          }
-          return `${context.dataset.label}: ${formatTokens(context.raw)}`
-        },
-        footer: (tooltipItems: any) => {
-          const dataIndex = tooltipItems[0]?.dataIndex
-          if (dataIndex !== undefined && props.trendData[dataIndex]) {
-            const data = props.trendData[dataIndex]
-            return `Actual: $${formatCost(data.actual_cost)} | Standard: $${formatCost(data.cost)}`
-          }
-          return ''
-        }
-      }
+  responsive: true, maintainAspectRatio: false, animation: { duration: 180 },
+  layout: { padding: { top: 12, right: 8, bottom: 0, left: 0 } }, interaction: { intersect: false, mode: 'index' as const },
+  plugins: { legend: { display: false }, tooltip: {
+    backgroundColor: colors.value.tooltip, titleColor: colors.value.foreground, bodyColor: colors.value.text, footerColor: colors.value.text,
+    borderColor: colors.value.grid, borderWidth: 1, cornerRadius: 6, padding: 12, caretSize: 0, displayColors: true, boxWidth: 6, boxHeight: 6, boxPadding: 4,
+    titleFont: { family: fontFamily, size: 12, weight: 500 }, bodyFont: { family: fontFamily, size: 12 }, footerFont: { family: fontFamily, size: 11, weight: 400 }, bodySpacing: 7, titleMarginBottom: 10,
+    callbacks: {
+      label: (context: any) => `${context.dataset.label}: ${context.dataset.yAxisID === 'yPercent' ? Number(context.raw).toFixed(1) + '%' : formatTokens(Number(context.raw))}`,
+      footer: (items: any[]) => { const point = props.trendData[items[0]?.dataIndex]; return point ? `${t('usage.actualCost')} $${formatCost(point.actual_cost)} · ${t('usage.standardCost')} $${formatCost(point.cost)}` : '' }
     }
-  },
+  } },
   scales: {
-    x: {
-      grid: {
-        color: chartColors.value.grid
-      },
-      ticks: {
-        color: chartColors.value.text,
-        font: {
-          size: 10
-        }
-      }
-    },
-    y: {
-      grid: {
-        color: chartColors.value.grid
-      },
-      ticks: {
-        color: chartColors.value.text,
-        font: {
-          size: 10
-        },
-        callback: (value: string | number) => formatTokens(Number(value))
-      }
-    },
-    yPercent: {
-      position: 'right' as const,
-      min: 0,
-      max: 100,
-      grid: {
-        drawOnChartArea: false
-      },
-      ticks: {
-        color: chartColors.value.cacheHitRate,
-        font: {
-          size: 10
-        },
-        callback: (value: string | number) => `${value}%`
-      }
-    }
+    x: { grid: { display: false }, border: { display: false }, ticks: { color: colors.value.text, maxTicksLimit: 6, maxRotation: 0, padding: 10, font: { family: fontFamily, size: 11 }, callback: (_: string | number, index: number) => formatTimeTick(props.trendData[index]?.date || '') } },
+    y: { display: mode.value === 'tokens', beginAtZero: true, grid: { color: colors.value.grid, drawTicks: false }, border: { display: false, dash: [3, 4] }, ticks: { color: colors.value.text, maxTicksLimit: 4, padding: 10, font: { family: fontFamily, size: 11 }, callback: (value: string | number) => formatTokens(Number(value)) } },
+    yPercent: { display: mode.value === 'cache', position: 'left' as const, min: 0, max: 100, grid: { color: colors.value.grid, drawTicks: false }, border: { display: false, dash: [3, 4] }, ticks: { color: colors.value.text, maxTicksLimit: 4, padding: 10, font: { family: fontFamily, size: 11 }, callback: (value: string | number) => `${value}%` } }
   }
 }))
-
-const formatTokens = (value: number): string => {
-  if (value >= 1_000_000_000) {
-    return `${(value / 1_000_000_000).toFixed(2)}B`
-  } else if (value >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(2)}M`
-  } else if (value >= 1_000) {
-    return `${(value / 1_000).toFixed(2)}K`
-  }
-  return value.toLocaleString()
-}
-
-const formatCost = (value: number): string => {
-  if (value >= 1000) {
-    return (value / 1000).toFixed(2) + 'K'
-  } else if (value >= 1) {
-    return value.toFixed(2)
-  } else if (value >= 0.01) {
-    return value.toFixed(3)
-  }
-  return value.toFixed(4)
-}
 </script>
+<style scoped>
+.token-trend-panel { padding:16px; color:var(--text-primary); }
+.trend-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.trend-heading h3 { font-size:13px; font-weight:600; line-height:20px; }
+.trend-heading p { color:var(--text-muted); font-size:11px; margin-top:3px; }
+.trend-controls { display:flex; align-items:center; gap:8px; }
+.trend-switch { display:flex; gap:2px; padding:2px; border:1px solid var(--border-default); border-radius:6px; }
+.trend-switch button { padding:4px 8px; color:var(--text-secondary); font-size:11px; line-height:18px; border-radius:4px; white-space:nowrap; }
+.trend-switch button.selected { background:var(--surface-raised); color:var(--text-primary); }
+.trend-canvas,.trend-empty { height:224px; }
+.trend-empty { display:grid; place-items:center; font-size:12px; color:var(--text-muted); }
+.trend-legend { display:flex; flex-wrap:wrap; justify-content:center; gap:8px 18px; margin-top:14px; }
+.trend-legend button { display:flex; gap:6px; align-items:center; color:var(--text-secondary); font-size:11px; line-height:20px; }
+.trend-legend i { width:7px; height:7px; border-radius:2px; }
+.trend-legend .muted { opacity:.45; text-decoration:line-through; }
+.trend-data { margin-top:12px; font-size:11px; color:var(--text-muted); }
+.trend-data summary { cursor:pointer; width:fit-content; }
+.trend-table-scroll { overflow:auto; margin-top:10px; }
+.trend-data table { min-width:480px; width:100%; font-variant-numeric:tabular-nums; }
+.trend-data th,.trend-data td { text-align:right; padding:6px; white-space:nowrap; }
+.trend-data th:first-child,.trend-data td:first-child { text-align:left; }
+.trend-data th { font-weight:400; }
+.trend-data td { color:var(--text-secondary); border-top:1px solid var(--border-default); }
+@media(max-width:600px) { .trend-heading { align-items:flex-start; flex-direction:column; } .trend-controls { width:100%; justify-content:space-between; } .trend-canvas,.trend-empty { height:200px; } }
+</style>

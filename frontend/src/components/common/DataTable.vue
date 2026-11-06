@@ -73,7 +73,7 @@
             :data-field="column.key"
             class="flex min-w-0 items-start justify-between gap-4"
           >
-            <span class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-dark-400">
+            <span class="text-xs font-medium text-gray-500 dark:text-dark-400">
               {{ column.label }}
             </span>
             <div class="min-w-0 max-w-full text-right text-sm text-gray-900 dark:text-gray-100">
@@ -123,7 +123,7 @@
             scope="col"
             :aria-sort="column.sortable ? getColumnAriaSort(column.key) : undefined"
             :class="[
-              'sticky-header-cell py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-dark-400',
+              'sticky-header-cell py-2.5 text-left text-xs font-medium text-gray-500 dark:text-dark-400',
               getAdaptivePaddingClass(),
               { 'cursor-pointer hover:bg-gray-100 dark:hover:bg-dark-700': column.sortable },
               getStickyColumnClass(column, index),
@@ -169,10 +169,10 @@
       <tbody class="table-body divide-y divide-gray-200 bg-white dark:divide-dark-700 dark:bg-dark-900">
         <!-- Loading skeleton -->
         <tr v-if="loading" v-for="i in 5" :key="i">
-          <td v-if="selectable" class="w-11 min-w-11 px-3 py-4">
+          <td v-if="selectable" class="w-11 min-w-11 px-3 py-3">
             <div class="mx-auto h-4 w-4 animate-pulse rounded bg-gray-200 dark:bg-dark-700"></div>
           </td>
-          <td v-for="column in columns" :key="column.key" :class="['whitespace-nowrap py-4', getAdaptivePaddingClass()]">
+          <td v-for="column in columns" :key="column.key" :class="['whitespace-nowrap py-3', getAdaptivePaddingClass()]">
             <div class="animate-pulse">
               <div class="h-4 w-3/4 rounded bg-gray-200 dark:bg-dark-700"></div>
             </div>
@@ -220,7 +220,7 @@
             }"
             @click="clickableRows && emit('rowClick', item.row)"
           >
-            <td v-if="selectable" class="w-11 min-w-11 px-3 py-4 text-center">
+            <td v-if="selectable" class="w-11 min-w-11 px-3 py-3 text-center">
               <input
                 type="checkbox"
                 class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-dark-600 dark:bg-dark-800"
@@ -235,7 +235,7 @@
               v-for="(column, colIndex) in columns"
               :key="column.key"
               :class="[
-                'whitespace-nowrap py-4 text-sm text-gray-900 dark:text-gray-100',
+                'whitespace-nowrap py-3 text-sm text-gray-900 dark:text-gray-100',
                 getAdaptivePaddingClass(),
                 getStickyColumnClass(column, colIndex),
                 column.class
@@ -892,7 +892,7 @@ const getAdaptivePaddingClass = () => {
   } else if (columnCount >= 5) {
     return 'px-4' // 16px
   } else {
-    return 'px-6' // 24px (原始值)
+    return 'px-4' // 16px
   }
 }
 
@@ -960,6 +960,7 @@ defineExpose({
   flex: 1;
   min-height: 0;
   isolation: isolate;
+  font-variant-numeric: tabular-nums;
 }
 
 /* 表头容器，确保在滚动时覆盖表体内容 */
@@ -967,11 +968,11 @@ defineExpose({
   position: sticky;
   top: 0;
   z-index: 200;
-  background-color: rgb(249 250 251);
+  background-color: var(--surface-canvas);
 }
 
 .dark .table-wrapper .table-header {
-  background-color: rgb(31 41 55);
+  background-color: var(--surface-raised);
 }
 
 /* 表体保持在表头下方 */
@@ -985,11 +986,11 @@ defineExpose({
   position: sticky;
   top: 0;
   z-index: 210; /* 必须高于所有表体内容 */
-  background-color: rgb(249 250 251);
+  background-color: var(--surface-canvas);
 }
 
 .dark .sticky-header-cell {
-  background-color: rgb(31 41 55);
+  background-color: var(--surface-raised);
 }
 
 /* Sticky 列基础样式 */
@@ -1025,20 +1026,20 @@ defineExpose({
 
 /* 表体 sticky 列背景 */
 tbody .sticky-col {
-  background-color: white;
+  background-color: var(--surface-panel);
 }
 
 .dark tbody .sticky-col {
-  background-color: rgb(17 24 39);
+  background-color: var(--surface-panel);
 }
 
 /* hover 状态保持 */
 tbody tr:hover .sticky-col {
-  background-color: rgb(249 250 251);
+  background-color: var(--surface-canvas);
 }
 
 .dark tbody tr:hover .sticky-col {
-  background-color: rgb(31 41 55);
+  background-color: var(--surface-raised);
 }
 
 /* 阴影只在可滚动时显示 */

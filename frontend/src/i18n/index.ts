@@ -1,19 +1,20 @@
 import { createI18n } from 'vue-i18n'
 
-type LocaleCode = 'en' | 'zh'
+export type LocaleCode = 'ko' | 'en' | 'zh'
 
 type LocaleMessages = Record<string, any>
 
 const LOCALE_KEY = 'sub2api_locale'
-const DEFAULT_LOCALE: LocaleCode = 'en'
+const DEFAULT_LOCALE: LocaleCode = 'ko'
 
 const localeLoaders: Record<LocaleCode, () => Promise<{ default: LocaleMessages }>> = {
+  ko: () => import('./locales/ko'),
   en: () => import('./locales/en'),
   zh: () => import('./locales/zh')
 }
 
 function isLocaleCode(value: string): value is LocaleCode {
-  return value === 'en' || value === 'zh'
+  return value === 'ko' || value === 'en' || value === 'zh'
 }
 
 function getDefaultLocale(): LocaleCode {
@@ -23,6 +24,9 @@ function getDefaultLocale(): LocaleCode {
   }
 
   const browserLang = navigator.language.toLowerCase()
+  if (browserLang.startsWith('ko')) {
+    return 'ko'
+  }
   if (browserLang.startsWith('zh')) {
     return 'zh'
   }
@@ -91,9 +95,17 @@ export function getLocale(): LocaleCode {
   return isLocaleCode(current) ? current : DEFAULT_LOCALE
 }
 
+/** BCP 47 locale for Intl date/number formatting. */
+export function getIntlLocale(locale: string = getLocale()): string {
+  if (locale.startsWith('ko')) return 'ko-KR'
+  if (locale.startsWith('zh')) return 'zh-CN'
+  return 'en-US'
+}
+
 export const availableLocales = [
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'zh', name: '中文', flag: '🇨🇳' }
+  { code: 'ko', name: '한국어' },
+  { code: 'en', name: 'English' },
+  { code: 'zh', name: '中文' }
 ] as const
 
 export default i18n

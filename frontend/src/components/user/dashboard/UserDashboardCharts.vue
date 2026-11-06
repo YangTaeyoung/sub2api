@@ -69,6 +69,7 @@ import { useI18n } from 'vue-i18n'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import DateRangePicker from '@/components/common/DateRangePicker.vue'
 import Select from '@/components/common/Select.vue'
+import { useChartTheme } from '@/composables/useChartTheme'
 import { Doughnut } from 'vue-chartjs'
 import TokenUsageTrend from '@/components/charts/TokenUsageTrend.vue'
 import type { TrendDataPoint, ModelStat } from '@/types'
@@ -79,25 +80,30 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcEleme
 const props = defineProps<{ loading: boolean, startDate: string, endDate: string, granularity: string, trend: TrendDataPoint[], models: ModelStat[] }>()
 defineEmits(['update:startDate', 'update:endDate', 'update:granularity', 'dateRangeChange', 'granularityChange', 'refresh'])
 const { t } = useI18n()
+const { colors, seriesColors, fontFamily } = useChartTheme()
 
 const modelData = computed(() => !props.models?.length ? null : {
   labels: props.models.map((m: ModelStat) => m.model),
   datasets: [{
     data: props.models.map((m: ModelStat) => m.total_tokens),
-    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16']
+    backgroundColor: seriesColors.value,
+    borderWidth: 0
   }]
 })
 
-const doughnutOptions = {
+const doughnutOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
     legend: { display: false },
     tooltip: {
+      backgroundColor: colors.value.tooltip, titleColor: colors.value.foreground, bodyColor: colors.value.text,
+      borderColor: colors.value.grid, borderWidth: 1, padding: 12, cornerRadius: 6,
+      titleFont: { family: fontFamily, size: 12 }, bodyFont: { family: fontFamily, size: 12 },
       callbacks: {
-        label: (context: any) => `${context.label}: ${formatTokens(context.parsed)} tokens`
+        label: (context: any) => `${context.label}: ${formatTokens(context.parsed)} ${t('dashboard.tokens')}`
       }
     }
   }
-}
+}))
 </script>

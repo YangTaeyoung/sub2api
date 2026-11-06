@@ -1,11 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 
 import TokenUsageTrend from '../TokenUsageTrend.vue'
 
 const messages: Record<string, string> = {
   'admin.dashboard.tokenUsageTrend': 'Token Usage Trend',
   'admin.dashboard.noDataAvailable': 'No data available',
+  'usage.cacheHitRate': 'Cache Hit Rate',
 }
 
 vi.mock('vue-i18n', async () => {
@@ -19,6 +20,7 @@ vi.mock('vue-i18n', async () => {
 })
 
 vi.mock('vue-chartjs', () => ({
+  Bar: { props: ['data', 'options'], template: '<div class="chart-data">{{ JSON.stringify(data) }}</div>' },
   Line: {
     props: ['data', 'options'],
     template: '<div class="chart-data">{{ JSON.stringify(data) }}</div>',
@@ -117,4 +119,20 @@ describe('TokenUsageTrend', () => {
     // Hit rate = 500 / (200 + 500 + 300) * 100 = 50%
     expect(hitRateDataset.data[0]).toBe(50)
   })
+  it('separates percent mode and repaints colors when the theme changes', async () => {
+    document.documentElement.classList.remove('dark')
+    const wrapper = mount(TokenUsageTrend, { props: { trendData: [{ date: '2026-05-08', requests: 1, input_tokens: 500, output_tokens: 100, cache_creation_tokens: 0, cache_read_tokens: 1500, total_tokens: 2100, cost: .01, actual_cost: .005 }] } })
+    const readData = () => JSON.parse(wrapper.find('.chart-data').text())
+    expect(readData().datasets[4].hidden).toBe(true)
+    const lightColor = readData().datasets[0].borderColor
+    await wrapper.findAll('.trend-switch button')[1].trigger('click')
+    expect(readData().datasets.slice(0,4).every((series: any) => series.hidden)).toBe(true)
+    expect(readData().datasets[4].hidden).toBe(false)
+    document.documentElement.classList.add('dark')
+    await flushPromises()
+    expect(readData().datasets[0].borderColor).not.toBe(lightColor)
+    wrapper.unmount()
+    document.documentElement.classList.remove('dark')
+  })
+
 })

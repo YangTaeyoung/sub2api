@@ -192,7 +192,8 @@ describe('admin AccountsView usage windows hint', () => {
     expect(columns.some(column => column.key === 'ollama_cloud_usage')).toBe(false)
   })
 
-  it('renders the upstream billing trust warning next to the declared-rate column', async () => {
+  it('renders the upstream billing trust warning when the declared-rate column is enabled', async () => {
+    localStorage.setItem('account-hidden-columns', JSON.stringify(['today_stats']))
     const wrapper = mountView()
     await flushPromises()
 

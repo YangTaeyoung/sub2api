@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { getIntlLocale } from '@/i18n'
 import Select from '@/components/common/Select.vue'
 import { CONCRETE_PLATFORM_OPTIONS } from '@/constants/platforms'
 import HelpTooltip from '@/components/common/HelpTooltip.vue'
@@ -641,7 +642,7 @@ function formatTimeShort(ts?: string | null): string {
   if (!ts) return '-'
   const d = new Date(ts)
   if (Number.isNaN(d.getTime())) return '-'
-  return d.toLocaleTimeString()
+  return d.toLocaleTimeString(getIntlLocale())
 }
 
 const cpuPercentValue = computed<number | null>(() => {
@@ -884,7 +885,7 @@ function handleToolbarRefresh() {
           </span>
 
           <span>·</span>
-          <span>{{ t('common.refresh') }}: {{ props.lastUpdated ? props.lastUpdated.toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\//g, '-') : t('common.unknown') }}</span>
+          <span>{{ t('common.refresh') }}: {{ props.lastUpdated ? props.lastUpdated.toLocaleString(getIntlLocale(), { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\//g, '-') : t('common.unknown') }}</span>
 
           <template v-if="props.autoRefreshEnabled && props.autoRefreshCountdown !== undefined">
             <span>·</span>

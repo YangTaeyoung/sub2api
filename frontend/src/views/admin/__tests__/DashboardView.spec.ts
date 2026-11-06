@@ -17,6 +17,7 @@ vi.mock('vue-chartjs', () => ({
 
 vi.mock('@/api/admin', () => ({
   adminAPI: {
+    accounts: { list: vi.fn().mockResolvedValue({items: []}) },
     dashboard: {
       getSnapshotV2,
       getUserUsageTrend,
@@ -32,6 +33,7 @@ vi.mock('@/stores/app', () => ({
 }))
 
 vi.mock('vue-router', () => ({
+  RouterLink: { props: ['to'], template: '<a><slot /></a>' },
   useRouter: () => ({
     push: vi.fn()
   })
@@ -171,4 +173,20 @@ describe('admin DashboardView', () => {
       granularity: 'hour'
     }))
   })
+  it('uses the selected model snapshot for period totals instead of stale today counters', async () => {
+    getSnapshotV2.mockResolvedValueOnce({
+      stats: { ...createDashboardStats(), today_requests: 999, today_tokens: 999999 },
+      trend: [],
+      models: [{ model: 'live-model', requests: 3, total_tokens: 1200, input_tokens: 1000, output_tokens: 200, cache_creation_tokens: 0, cache_read_tokens: 0, actual_cost: 0.1234, cost: 0.2 }]
+    })
+    const wrapper = mount(DashboardView, { global: { stubs: {
+      AppLayout: { template: '<div><slot /></div>' }, Icon: true, PlatformIcon: true,
+      DateRangePicker: true, Select: true, ModelDistributionChart: true, TokenUsageTrend: true
+    } } })
+    await flushPromises()
+    const metrics = wrapper.findAll('.overview-metric strong').map(node => node.text())
+    expect(metrics.slice(0, 3)).toEqual(['3', '1.20K', '$0.123'])
+    expect(wrapper.findAll('.overview-metric small')[0].text()).not.toContain('999')
+  })
+
 })

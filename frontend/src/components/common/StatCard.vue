@@ -1,7 +1,7 @@
 <template>
   <div class="stat-card">
-    <div :class="['stat-icon', iconClass]">
-      <component v-if="icon" :is="icon" class="h-6 w-6" aria-hidden="true" />
+    <div v-if="icon" :class="['stat-icon', iconClass]">
+      <component v-if="icon" :is="icon" class="h-4 w-4" aria-hidden="true" />
     </div>
     <div class="min-w-0 flex-1">
       <p class="stat-label truncate">{{ title }}</p>

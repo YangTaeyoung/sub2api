@@ -1,6 +1,8 @@
 export default {
   batchImage: {
     columns: {
+      customId: '自定义 ID',
+      prompt: '提示词',
       taskName: '任务名称',
       model: '模型',
       apiKey: '提交密钥',
@@ -135,6 +137,7 @@ export default {
       refFileTooLarge: '{name} 超过 10MB，已忽略。',
     },
     guide: {
+      endpointPlaceholder: '[你的 Sub2API API 端点]',
       title: '批量生图使用说明',
       uiTitle: '当前界面如何使用',
       step1: '1. 选择已开启批量生图的 Gemini API Key，模型列表会按该 Key 所属分组可用模型展示。',

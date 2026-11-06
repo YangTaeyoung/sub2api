@@ -113,6 +113,7 @@ export function useOnboardingTour(options: OnboardingOptions) {
     // 创建新的 driver 实例并存储到 store
     driverInstance = driver({
       showProgress: true,
+      progressText: '{{current}} / {{total}}',
       steps,
       animate: true,
       allowClose: false, // 禁止点击遮罩关闭

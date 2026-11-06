@@ -5,82 +5,47 @@ export default {
   theme: {
     extend: {
       colors: {
-        // 主色调 - Teal/Cyan 青色系
         primary: {
-          50: '#f0fdfa',
-          100: '#ccfbf1',
-          200: '#99f6e4',
-          300: '#5eead4',
-          400: '#2dd4bf',
-          500: '#14b8a6',
-          600: '#0d9488',
-          700: '#0f766e',
-          800: '#115e59',
-          900: '#134e4a',
-          950: '#042f2e'
+          50: '#eef0ff', 100: '#dfe3ff', 200: '#c5ccff', 300: '#a3adff',
+          400: '#8992f9', 500: '#7278ef', 600: '#5b5bd6', 700: '#4c49b5',
+          800: '#3d3b90', 900: '#302e68', 950: '#1f1d40'
         },
-        // 辅助色 - 深蓝灰
+        gray: {
+          50: '#f7f8fa', 100: '#eef0f3', 200: '#e1e3e8', 300: '#ccd0d8',
+          400: '#8a909c', 500: '#68707e', 600: '#515968', 700: '#353c49',
+          800: '#242a35', 900: '#181c25', 950: '#111318'
+        },
         accent: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          200: '#e2e8f0',
-          300: '#cbd5e1',
-          400: '#94a3b8',
-          500: '#64748b',
-          600: '#475569',
-          700: '#334155',
-          800: '#1e293b',
-          900: '#0f172a',
-          950: '#020617'
+          50: '#f7f8fa', 100: '#eef0f3', 200: '#e1e3e8', 300: '#ccd0d8',
+          400: '#8a909c', 500: '#68707e', 600: '#515968', 700: '#353c49',
+          800: '#242a35', 900: '#181c25', 950: '#111318'
         },
-        // 深色模式背景
         dark: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          200: '#e2e8f0',
-          300: '#cbd5e1',
-          400: '#94a3b8',
-          500: '#64748b',
-          600: '#475569',
-          700: '#334155',
-          800: '#1e293b',
-          900: '#0f172a',
-          950: '#020617'
+          50: '#f5f5f6', 100: '#ededef', 200: '#d5d7dc', 300: '#b4b8c2',
+          400: '#969ba7', 500: '#747b88', 600: '#42464f', 700: '#2b2e35',
+          800: '#1c1e23', 900: '#17181b', 950: '#111214'
+        },
+        surface: {
+          canvas: 'var(--surface-canvas)', panel: 'var(--surface-panel)',
+          sidebar: 'var(--surface-sidebar)', raised: 'var(--surface-raised)'
         }
       },
       fontFamily: {
-        sans: [
-          'system-ui',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          'Segoe UI',
-          'Roboto',
-          'Helvetica Neue',
-          'Arial',
-          'PingFang SC',
-          'Hiragino Sans GB',
-          'Microsoft YaHei',
-          'sans-serif'
-        ],
+        sans: ['Pretendard Variable', '-apple-system', 'BlinkMacSystemFont', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Segoe UI', 'sans-serif'],
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
       },
+      fontSize: {
+        xs: ['12px', { lineHeight: '18px' }],
+        sm: ['13px', { lineHeight: '20px' }],
+        base: ['14px', { lineHeight: '22px' }]
+      },
       boxShadow: {
-        glass: '0 8px 32px rgba(0, 0, 0, 0.08)',
-        'glass-sm': '0 4px 16px rgba(0, 0, 0, 0.06)',
-        glow: '0 0 20px rgba(20, 184, 166, 0.25)',
-        'glow-lg': '0 0 40px rgba(20, 184, 166, 0.35)',
-        card: '0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06)',
-        'card-hover': '0 10px 40px rgba(0, 0, 0, 0.08)',
-        'inner-glow': 'inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+        glass: 'none', 'glass-sm': 'none', glow: 'none', 'glow-lg': 'none',
+        card: 'none', 'card-hover': 'none', 'inner-glow': 'none'
       },
       backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-primary': 'linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)',
-        'gradient-dark': 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-        'gradient-glass':
-          'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
-        'mesh-gradient':
-          'radial-gradient(at 40% 20%, rgba(20, 184, 166, 0.12) 0px, transparent 50%), radial-gradient(at 80% 0%, rgba(6, 182, 212, 0.08) 0px, transparent 50%), radial-gradient(at 0% 50%, rgba(20, 184, 166, 0.08) 0px, transparent 50%)'
+        'gradient-primary': 'none', 'gradient-dark': 'none',
+        'gradient-glass': 'none', 'mesh-gradient': 'none'
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-out',

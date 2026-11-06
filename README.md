@@ -1,3 +1,5 @@
+> 한국어 UI 포크 안내: [README.ko.md](README.ko.md) · [디자인 기준](DESIGN.md)
+
 <div align="center">
 
 <img src="assets/logo.svg" alt="Sub2API Logo" width="128" />

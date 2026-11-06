@@ -1,5 +1,6 @@
 export default {
   common: {
+    timeLabel: '时间',
     loading: '加载中...',
     submitting: '提交中...',
     justNow: '刚刚',
@@ -134,6 +135,7 @@ export default {
   },
 
   legal: {
+    documentTitle: '法律文件',
     loadFailed: '文档加载失败',
     retryLater: '请稍后刷新页面重试。',
     notFound: '文档不存在',

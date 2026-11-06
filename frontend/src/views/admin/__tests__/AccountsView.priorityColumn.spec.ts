@@ -106,7 +106,9 @@ describe('admin AccountsView priority column preferences', () => {
     })
   })
 
-  it('shows priority as a sortable column for fresh preferences', async () => {
+  it('keeps priority sortable when explicitly enabled in saved preferences', async () => {
+    localStorage.setItem('account-hidden-columns', JSON.stringify(['today_stats']))
+    localStorage.setItem('account-hidden-columns-version', 'scheduler-score-hidden-by-default')
     const wrapper = mountView()
     await flushPromises()
 
@@ -121,6 +123,18 @@ describe('admin AccountsView priority column preferences', () => {
       expect.objectContaining({ sort_by: 'priority', sort_order: 'desc' }),
       expect.objectContaining({ signal: expect.any(AbortSignal) })
     )
+  })
+
+  it('uses compact essential columns for fresh preferences', async () => {
+    const wrapper = mountView()
+    await flushPromises()
+    for (const key of ['name', 'platform_type', 'capacity', 'status', 'schedulable', 'usage', 'actions']) {
+      expect(wrapper.find(`[data-column="${key}"]`).exists()).toBe(true)
+    }
+    for (const key of ['id', 'priority', 'upstream_billing_rate', 'created_at', 'expires_at']) {
+      expect(wrapper.find(`[data-column="${key}"]`).exists()).toBe(false)
+    }
+    wrapper.unmount()
   })
 
   it('preserves an existing preference that explicitly hides priority', async () => {

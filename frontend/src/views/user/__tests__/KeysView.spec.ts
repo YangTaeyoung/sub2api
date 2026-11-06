@@ -341,11 +341,8 @@ describe('user KeysView column settings', () => {
       'name',
       'key',
       'group',
-      'current_concurrency',
       'usage',
-      'expires_at',
       'status',
-      'created_at',
       'actions',
     ])
     expect(visibleColumnKeys(wrapper)).not.toContain('rate_limit')
@@ -423,7 +420,7 @@ describe('user KeysView column settings', () => {
 
     expect(visibleColumnKeys(wrapper)).toContain('rate_limit')
     expect(localStorage.getItem('api-key-hidden-columns')).toBe(
-      JSON.stringify(['id', 'last_used_at', 'last_used_ip'])
+      JSON.stringify(['id', 'last_used_at', 'last_used_ip', 'current_concurrency', 'expires_at', 'created_at'])
     )
     expect(localStorage.getItem('api-key-column-settings-version')).toBe('3')
   })
@@ -503,8 +500,11 @@ describe('user KeysView column settings', () => {
     expect(wrapper.get('[data-test="current-concurrency"]').text()).toBe('3')
   })
 
-  it('marks current concurrency as sortable', async () => {
+  it('marks current concurrency as sortable when enabled', async () => {
     const wrapper = await mountView()
+    await wrapper.get('button[title="Column Settings"]').trigger('click')
+    await getButtonByText(wrapper, 'Current Concurrency').trigger('click')
+    await nextTick()
 
     const currentConcurrencyColumn = visibleColumnMeta(wrapper).find(
       (column) => column.key === 'current_concurrency'
@@ -518,6 +518,10 @@ describe('user KeysView column settings', () => {
     { key: 'group', order: 'desc' },
   ] as const)('keeps filters and resets pagination and selection when sorting $key $order', async ({ key, order }) => {
     getAvailableGroups.mockResolvedValue([{ id: 42, name: 'OpenAI' }])
+    if (key === 'current_concurrency') {
+      localStorage.setItem('api-key-hidden-columns', JSON.stringify([]))
+      localStorage.setItem('api-key-column-settings-version', '3')
+    }
     const wrapper = await mountView()
 
     await wrapper.get('[data-test="page-size-50"]').trigger('click')

@@ -89,9 +89,19 @@ describe('GroupI18nField', () => {
 
     expect(menuItems(wrapper).map((item) => [item.attributes('data-locale'), item.text()])).toEqual([
       ['default', 'admin.groups.i18nField.default'],
+      ['ko', 'admin.groups.i18nField.add:한국어'],
       ['en', 'admin.groups.i18nField.edit:English'],
       ['zh', 'admin.groups.i18nField.add:中文']
     ])
+  })
+
+  it('adds a Korean group name while preserving existing translations', async () => {
+    const { wrapper, state } = mountField({ text: 'Default', i18n: { en: { name: 'Standard' } } })
+    await choose(wrapper, 'ko')
+    await wrapper.get('input').setValue('스탠다드')
+    expect(trigger(wrapper).text()).toBe('한국어')
+    expect(state.i18n).toEqual({ en: { name: 'Standard' }, ko: { name: '스탠다드' } })
+    expect(state.text).toBe('Default')
   })
 
   it('switches the same input to the chosen language version', async () => {
@@ -187,7 +197,7 @@ describe('GroupI18nField', () => {
   it('closes the menu when clicking elsewhere', async () => {
     const { wrapper } = mountField({ text: '标准', i18n: {} })
     await trigger(wrapper).trigger('click')
-    expect(menuItems(wrapper)).toHaveLength(3)
+    expect(menuItems(wrapper)).toHaveLength(4)
 
     document.body.click()
     await wrapper.vm.$nextTick()

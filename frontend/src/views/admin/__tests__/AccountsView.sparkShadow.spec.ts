@@ -303,6 +303,10 @@ describe('admin AccountsView — 账号行展示', () => {
     expect(badge.props('planType')).toBe('plus')
     expect(badge.props('privacyMode')).toBe('false')
     expect(badge.props('subscriptionExpiresAt')).toBe('2027-01-01T00:00:00Z')
+    // The compact summary and expanded badge must retain the same inherited expiry.
+    expect(wrapper.findAllComponents(PlatformTypeBadge).every(item =>
+      item.props('subscriptionExpiresAt') === '2027-01-01T00:00:00Z'
+    )).toBe(true)
 
     wrapper.unmount()
   })
@@ -468,7 +472,7 @@ describe('admin AccountsView — 账号行展示', () => {
     const wrapper = mountViewWithRow()
     await flushPromises()
 
-    const badges = wrapper.findAllComponents(PlatformTypeBadge)
+    const badges = wrapper.findAllComponents(PlatformTypeBadge).filter(badge => badge.props('compact'))
     expect(badges.map((badge) => badge.props('planType'))).toEqual([
       'FREE',
       'SuperGrok Heavy',
@@ -480,6 +484,8 @@ describe('admin AccountsView — 账号行展示', () => {
       'SuperGrok',
       'SuperGrok',
     ])
+    expect(wrapper.findAllComponents(PlatformTypeBadge).filter(badge => !badge.props('compact')).map(badge => badge.props('planType')))
+      .toEqual(badges.map(badge => badge.props('planType')))
 
     wrapper.unmount()
   })
@@ -537,11 +543,14 @@ describe('admin AccountsView — 账号行展示', () => {
     const wrapper = mountViewWithRow()
     await flushPromises()
 
-    expect(wrapper.findAllComponents(PlatformTypeBadge).map((badge) => badge.props('planType'))).toEqual([
+    const summaryPlans = wrapper.findAllComponents(PlatformTypeBadge).filter(badge => badge.props('compact')).map(badge => badge.props('planType'))
+    expect(summaryPlans).toEqual([
       'SuperGrok',
       'SuperGrok Heavy',
       undefined,
     ])
+    expect(wrapper.findAllComponents(PlatformTypeBadge).filter(badge => !badge.props('compact')).map(badge => badge.props('planType')))
+      .toEqual(summaryPlans)
     wrapper.unmount()
   })
 

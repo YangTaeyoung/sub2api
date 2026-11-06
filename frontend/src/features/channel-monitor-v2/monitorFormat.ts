@@ -8,14 +8,14 @@
 
 import type { HealthScoreBand, HealthState, MonitorHealth } from '@/api/channelMonitorV2'
 import { formatCompactNumber } from '@/utils/format'
+import { getIntlLocale } from '@/i18n'
 
 export function monitorIntlLocale(): string {
   if (typeof document !== 'undefined') {
     const htmlLang = document.documentElement.getAttribute('lang')?.trim()
-    if (htmlLang) return htmlLang
+    if (htmlLang) return getIntlLocale(htmlLang)
   }
-  if (typeof navigator !== 'undefined' && navigator.language) return navigator.language
-  return 'zh-CN'
+  return getIntlLocale()
 }
 
 export function formatMonitorNumber(value: number, compactAt = 10000, locale = monitorIntlLocale()): string {

@@ -227,6 +227,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { getIntlLocale } from '@/i18n'
 import Icon from '@/components/icons/Icon.vue'
 import type { PlatformDashboardStats, UserDashboardStats as UserStatsType } from '@/api/usage'
 import type { PlatformQuotaItem } from '@/types'
@@ -363,20 +364,20 @@ function quotaBarClass(p: number): string {
 
 // 与 formatBalance 一致使用 Intl.NumberFormat 做半偶舍入，避免 toFixed 在不同 JS 引擎
 // 下偶发截断而非四舍五入（与后端展示精度不一致）。
-const usdFormatter = new Intl.NumberFormat('en-US', {
+const usdFormatter = computed(() => new Intl.NumberFormat(getIntlLocale(), {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
-})
+}))
 function formatUsd(n: number): string {
   if (!Number.isFinite(n)) return '0.00'
-  return usdFormatter.format(n)
+  return usdFormatter.value.format(n)
 }
 
 function formatResetTime(iso: string | null | undefined): string {
   if (!iso) return ''
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return iso
-  return d.toLocaleString(undefined, {
+  return d.toLocaleString(getIntlLocale(), {
     month: 'numeric',
     day: 'numeric',
     hour: '2-digit',
@@ -386,12 +387,12 @@ function formatResetTime(iso: string | null | undefined): string {
 }
 
 const formatBalance = (b: number) =>
-  new Intl.NumberFormat('en-US', {
+  new Intl.NumberFormat(getIntlLocale(), {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }).format(b)
 
-const formatNumber = (n: number) => n.toLocaleString()
+const formatNumber = (n: number) => n.toLocaleString(getIntlLocale())
 const formatCost = (c: number) => c.toFixed(4)
 const formatTokens = (t: number) => {
   if (t >= 1_000_000) return `${(t / 1_000_000).toFixed(1)}M`

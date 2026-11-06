@@ -1,13 +1,17 @@
 <template>
-  <div class="relative" ref="dropdownRef">
+  <div class="relative" ref="dropdownRef" @keydown="handleKeydown">
     <button
+      ref="triggerRef"
       @click="toggleDropdown"
       :disabled="switching"
       class="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-700"
       :title="currentLocale?.name"
+      :aria-label="currentLocale?.name"
+      :aria-expanded="isOpen"
+      aria-haspopup="menu"
     >
-      <span class="text-base">{{ currentLocale?.flag }}</span>
-      <span class="hidden sm:inline">{{ currentLocale?.code.toUpperCase() }}</span>
+      <Icon name="globe" size="sm" />
+      <span class="hidden sm:inline">{{ currentLocale?.name }}</span>
       <Icon
         name="chevronDown"
         size="xs"
@@ -19,11 +23,15 @@
     <transition name="dropdown">
       <div
         v-if="isOpen"
+        role="menu"
+        :aria-label="currentLocale?.name"
         class="absolute right-0 z-50 mt-1 w-32 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-dark-700 dark:bg-dark-800"
       >
         <button
           v-for="locale in availableLocales"
           :key="locale.code"
+          role="menuitemradio"
+          :aria-checked="locale.code === currentLocaleCode"
           :disabled="switching"
           @click="selectLocale(locale.code)"
           class="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-dark-700"
@@ -32,7 +40,6 @@
               locale.code === currentLocaleCode
           }"
         >
-          <span class="text-base">{{ locale.flag }}</span>
           <span>{{ locale.name }}</span>
           <Icon v-if="locale.code === currentLocaleCode" name="check" size="sm" class="ml-auto text-primary-500" />
         </button>
@@ -42,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
 import { setLocale, availableLocales } from '@/i18n'
@@ -52,12 +59,41 @@ const { locale } = useI18n()
 const isOpen = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)
 const switching = ref(false)
+const triggerRef = ref<HTMLButtonElement | null>(null)
 
 const currentLocaleCode = computed(() => locale.value)
 const currentLocale = computed(() => availableLocales.find((l) => l.code === locale.value))
 
-function toggleDropdown() {
+async function toggleDropdown() {
   isOpen.value = !isOpen.value
+  if (isOpen.value) {
+    await nextTick()
+    dropdownRef.value?.querySelector<HTMLButtonElement>('[aria-checked="true"]')?.focus()
+  }
+}
+
+async function handleKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    isOpen.value = false
+    triggerRef.value?.focus()
+    return
+  }
+  if (event.key === 'Tab') {
+    isOpen.value = false
+    return
+  }
+  if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return
+  event.preventDefault()
+  if (!isOpen.value) {
+    await toggleDropdown()
+    return
+  }
+  const options = [...(dropdownRef.value?.querySelectorAll<HTMLButtonElement>('[role="menuitemradio"]') ?? [])]
+  if (!options.length) return
+  const current = options.findIndex((option) => option === document.activeElement)
+  const next = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1
+    : (current + (event.key === 'ArrowUp' ? -1 : 1) + options.length) % options.length
+  options[next]?.focus()
 }
 
 async function selectLocale(code: string) {

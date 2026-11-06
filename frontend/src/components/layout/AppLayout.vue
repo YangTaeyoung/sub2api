@@ -1,21 +1,18 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-dark-950">
-    <!-- Background Decoration -->
-    <div class="pointer-events-none fixed inset-0 bg-mesh-gradient"></div>
-
+  <div class="app-shell min-h-screen">
     <!-- Sidebar -->
     <AppSidebar />
 
     <!-- Main Content Area -->
     <div
-      class="relative min-h-screen transition-all duration-300"
-      :class="[sidebarCollapsed ? 'lg:ml-[72px]' : 'lg:ml-64']"
+      class="app-content-region relative min-h-screen"
+      :class="{ 'is-collapsed': sidebarCollapsed }"
     >
       <!-- Header -->
       <AppHeader />
 
       <!-- Main Content -->
-      <main class="p-4 md:p-6 lg:p-8">
+      <main id="main-content" class="app-main" tabindex="-1">
         <slot />
       </main>
     </div>

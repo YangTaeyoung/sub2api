@@ -3,7 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 import DateRangePicker from '../DateRangePicker.vue'
 
-vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string) => key, locale: ref('en') }) }))
+vi.mock('vue-i18n', async () => ({
+  ...await vi.importActual<typeof import('vue-i18n')>('vue-i18n'), useI18n: () => ({ t: (key: string) => key, locale: ref('en') }) }))
 let wrapper: ReturnType<typeof mount<typeof DateRangePicker>>
 beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date(2026, 8, 13, 12)) })
 afterEach(() => { wrapper?.unmount(); vi.useRealTimers() })

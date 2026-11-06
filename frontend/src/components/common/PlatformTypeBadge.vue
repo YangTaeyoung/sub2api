@@ -1,5 +1,5 @@
 <template>
-  <div class="inline-flex flex-col gap-0.5 text-xs font-medium">
+  <div class="inline-flex flex-col gap-0.5 text-xs font-medium" :class="{ 'platform-type-compact': compact }" :title="compact && expiresLabel ? expiresLabel : undefined">
     <!-- Row 1: Platform + Type -->
     <div class="inline-flex items-center overflow-hidden rounded-md">
       <span :class="['inline-flex items-center gap-1 px-2 py-1', platformClass]">
@@ -58,7 +58,7 @@
       </span>
     </div>
     <!-- Row 3: Subscription expiration (non-free paid accounts only) -->
-    <div v-if="expiresLabel" class="text-[10px] leading-tight text-gray-400 dark:text-gray-500 pl-0.5" :title="subscriptionExpiresAt">
+    <div v-if="expiresLabel && !compact" class="text-[10px] leading-tight text-gray-400 dark:text-gray-500 pl-0.5" :title="subscriptionExpiresAt">
       {{ expiresLabel }}
     </div>
   </div>
@@ -77,6 +77,7 @@ import Icon from '@/components/icons/Icon.vue'
 const { t } = useI18n()
 
 interface Props {
+  compact?: boolean
   platform: AccountPlatform
   type: AccountType
   authMode?: string
@@ -320,3 +321,11 @@ const privacyBadge = computed(() => {
   }
 })
 </script>
+
+<style scoped>
+.platform-type-compact { gap: 1px; }
+.platform-type-compact > div { overflow: visible; }
+.platform-type-compact > div > span { background: transparent !important; color: var(--text-secondary) !important; padding: 0 !important; font-size: 12px; line-height: 18px; }
+.platform-type-compact > div > span + span::before { content: '·'; color: var(--text-muted); margin: 0 5px; }
+.platform-type-compact > div > span > svg { display: none; }
+</style>

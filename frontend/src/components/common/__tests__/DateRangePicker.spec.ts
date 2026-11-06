@@ -19,7 +19,8 @@ const messages: Record<string, string> = {
   'dates.selectDateRange': 'Select date range'
 }
 
-vi.mock('vue-i18n', () => ({
+vi.mock('vue-i18n', async () => ({
+  ...await vi.importActual<typeof import('vue-i18n')>('vue-i18n'),
   useI18n: () => ({
     t: (key: string) => messages[key] ?? key,
     locale: ref('en')

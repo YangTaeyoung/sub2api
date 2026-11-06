@@ -130,6 +130,44 @@ describe('AccountUsageCell', () => {
     })
   })
 
+  it('keeps real usage actions mounted behind a compact disclosure without refetching when expanded', async () => {
+    getUsage.mockResolvedValue({
+      source: 'passive',
+      five_hour: { utilization: 41, resets_at: null, remaining_seconds: 0 },
+      seven_day: { utilization: 56, resets_at: null, remaining_seconds: 0 },
+    })
+    const wrapper = mount(AccountUsageCell, {
+      props: { compact: true, account: makeAccount({ id: 99001, platform: 'anthropic', type: 'oauth' }) },
+      global: { stubs: {
+        UsageProgressBar: true,
+        ClaudeResetCreditsCell: { template: '<div><slot name="pre-actions" /></div>' },
+      } },
+    })
+    await flushPromises()
+    const details = wrapper.get('details')
+    expect(details.attributes('open')).toBeUndefined()
+    expect(wrapper.get('summary').text()).toContain('41%')
+    expect(wrapper.get('summary').text()).toContain('56%')
+    expect(wrapper.get('.account-usage-expanded button').text()).toContain('admin.accounts.usageWindow.activeQuery')
+    const requestsBeforeExpand = getUsage.mock.calls.length
+    ;(details.element as HTMLDetailsElement).open = true
+    await details.trigger('toggle')
+    expect(getUsage).toHaveBeenCalledTimes(requestsBeforeExpand)
+    wrapper.unmount()
+  })
+
+  it('keeps a degraded usage error visible in the collapsed summary', async () => {
+    getUsage.mockResolvedValue({ error: 'Usage unavailable', five_hour: null, seven_day: null })
+    const wrapper = mount(AccountUsageCell, {
+      props: { compact: true, account: makeAccount({ id: 99002, platform: 'openai', type: 'oauth' }) },
+      global: { stubs: { OpenAIQuotaResetCell: true } },
+    })
+    await flushPromises()
+    expect(wrapper.get('summary').text()).toContain('Usage unavailable')
+    expect(wrapper.get('details').attributes('open')).toBeUndefined()
+    wrapper.unmount()
+  })
+
   it('renders eligible Ollama Cloud state and forwards query updates', async () => {
     const wrapper = mount(AccountUsageCell, {
       props: {

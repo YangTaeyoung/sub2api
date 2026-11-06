@@ -19,6 +19,15 @@ function mountPlan(platform: AccountPlatform, planType: string) {
 }
 
 describe('PlatformTypeBadge ChatGPT plan tiers', () => {
+  it('keeps paid subscription expiry available on the compact summary', () => {
+    const wrapper = mount(PlatformTypeBadge, {
+      props: { platform: 'openai', type: 'oauth', planType: 'plus', compact: true, subscriptionExpiresAt: '2027-01-02T12:00:00Z' },
+    })
+    expect(wrapper.attributes('title')).toContain('2027-01-02')
+    expect(wrapper.text()).not.toContain('2027-01-02')
+    wrapper.unmount()
+  })
+
   it('labels pro / chatgptpro as Pro 200 with the Pro color', () => {
     for (const planType of ['pro', 'chatgptpro', 'PRO']) {
       const wrapper = mountPlan('openai', planType)

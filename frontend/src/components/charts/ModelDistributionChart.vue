@@ -1,9 +1,9 @@
 <template>
-  <div class="card p-4">
+  <div class="card p-4 distribution-panel" :class="{ 'distribution-compact': !showChart }">
     <div class="mb-4 flex items-center justify-between gap-3">
       <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
         {{ !enableRankingView || activeView === 'model_distribution'
-          ? t('admin.dashboard.modelDistribution')
+          ? t(!showChart ? 'admin.dashboard.modelUsage' : 'admin.dashboard.modelDistribution')
           : t('admin.dashboard.spendingRankingTitle') }}
       </h3>
       <div class="flex flex-wrap items-center justify-end gap-2">
@@ -78,7 +78,7 @@
             "
             @click="activeView = 'model_distribution'"
           >
-            {{ t('admin.dashboard.viewModelDistribution') }}
+            {{ t(!showChart ? 'admin.dashboard.model' : 'admin.dashboard.viewModelDistribution') }}
           </button>
           <button
             type="button"
@@ -96,6 +96,14 @@
       </div>
     </div>
 
+    <div v-if="!showChart && activeView === 'model_distribution' && !loading && displayModelStats.length" class="distribution-mobile-models">
+      <div v-for="model in displayModelStats" :key="model.model" class="mobile-model-row">
+        <button type="button" class="mobile-model-name" :aria-expanded="expandedKey === `model-${model.model}`" @click="enableBreakdown && toggleBreakdown('model', model.model)">{{ model.model }}<svg v-if="enableBreakdown" class="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7"/></svg></button>
+        <div class="mobile-model-metrics"><span>{{ t('admin.dashboard.requests') }} <b>{{ formatNumber(model.requests) }}</b></span><span>{{ t('admin.dashboard.tokens') }} <b>{{ formatTokens(model.total_tokens) }}</b></span><span>{{ t('usage.cost') }} <b>${{ formatCost(model.actual_cost) }}</b></span></div>
+        <UserBreakdownSubTable v-if="expandedKey === `model-${model.model}`" :items="breakdownItems" :loading="breakdownLoading" :show-account-cost="showAccountCost" />
+      </div>
+    </div>
+
     <div v-if="activeView === 'model_distribution' && loading" class="flex h-48 items-center justify-center">
       <LoadingSpinner />
     </div>
@@ -103,19 +111,19 @@
       v-else-if="activeView === 'model_distribution' && displayModelStats.length > 0 && chartData"
       class="flex flex-col items-center gap-4 sm:flex-row sm:gap-6"
     >
-      <div class="h-48 w-48 shrink-0">
+      <div v-if="showChart" class="h-40 w-40 shrink-0">
         <Doughnut :data="chartData" :options="doughnutOptions" />
       </div>
-      <div class="max-h-48 w-full min-w-0 flex-1 overflow-auto">
+      <div class="distribution-table w-full min-w-0 flex-1 overflow-auto">
         <table class="w-full text-xs">
           <thead>
             <tr class="text-gray-500 dark:text-gray-400">
               <th class="pb-2 text-left">{{ t('admin.dashboard.model') }}</th>
               <th class="pb-2 text-right">{{ t('admin.dashboard.requests') }}</th>
               <th class="pb-2 text-right">{{ t('admin.dashboard.tokens') }}</th>
-              <th class="pb-2 text-right">{{ t('admin.dashboard.actual') }}</th>
-              <th v-if="showAccountCost" class="pb-2 text-right">{{ t('admin.dashboard.accountCost') }}</th>
-              <th class="pb-2 text-right">{{ t('admin.dashboard.standard') }}</th>
+              <th class="pb-2 text-right">{{ t(!showChart ? 'usage.cost' : 'admin.dashboard.actual') }}</th>
+              <th v-if="showAccountCost && showChart" class="pb-2 text-right">{{ t('admin.dashboard.accountCost') }}</th>
+              <th v-if="showChart" class="pb-2 text-right">{{ t('admin.dashboard.standard') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -126,15 +134,15 @@
                 @click="enableBreakdown && toggleBreakdown('model', model.model)"
               >
                 <td
-                  class="max-w-[100px] truncate py-1.5 font-medium"
-                  :class="enableBreakdown ? 'text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300' : 'text-gray-900 dark:text-white'"
+                  class="max-w-[260px] truncate py-1.5 font-medium"
+                  :class="enableBreakdown ? 'text-gray-900 hover:text-primary-600 dark:text-gray-100 dark:hover:text-primary-300' : 'text-gray-900 dark:text-white'"
                   :title="model.model"
                 >
-                  <span class="inline-flex items-center gap-1">
+                  <button type="button" class="inline-flex items-center gap-1 text-left" :disabled="!enableBreakdown" :aria-expanded="expandedKey === `model-${model.model}`" @click.stop="enableBreakdown && toggleBreakdown('model', model.model)">
                     <svg v-if="enableBreakdown && expandedKey === `model-${model.model}`" class="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     <svg v-else-if="enableBreakdown" class="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     {{ model.model }}
-                  </span>
+                  </button>
                 </td>
                 <td class="py-1.5 text-right text-gray-600 dark:text-gray-400">
                   {{ formatNumber(model.requests) }}
@@ -142,13 +150,13 @@
                 <td class="py-1.5 text-right text-gray-600 dark:text-gray-400">
                   {{ formatTokens(model.total_tokens) }}
                 </td>
-                <td class="py-1.5 text-right text-green-600 dark:text-green-400">
+                <td class="py-1.5 text-right text-gray-900 dark:text-gray-100">
                   ${{ formatCost(model.actual_cost) }}
                 </td>
-                <td v-if="showAccountCost" class="py-1.5 text-right text-orange-500 dark:text-orange-400">
+                <td v-if="showAccountCost && showChart" class="py-1.5 text-right text-orange-500 dark:text-orange-400">
                   ${{ formatCost(model.account_cost) }}
                 </td>
-                <td class="py-1.5 text-right text-gray-400 dark:text-gray-500">
+                <td v-if="showChart" class="py-1.5 text-right text-gray-400 dark:text-gray-500">
                   ${{ formatCost(model.cost) }}
                 </td>
               </tr>
@@ -183,10 +191,10 @@
       {{ t('admin.dashboard.failedToLoad') }}
     </div>
     <div v-else-if="rankingDisplayItems.length > 0 && rankingChartData" class="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
-      <div class="h-48 w-48 shrink-0">
+      <div v-if="showChart" class="h-40 w-40 shrink-0">
         <Doughnut :data="rankingChartData" :options="rankingDoughnutOptions" />
       </div>
-      <div class="max-h-48 w-full min-w-0 flex-1 overflow-auto">
+      <div class="distribution-table w-full min-w-0 flex-1 overflow-auto">
         <table class="w-full text-xs">
           <thead>
             <tr class="text-gray-500 dark:text-gray-400">
@@ -225,7 +233,7 @@
               <td class="py-1.5 text-right text-gray-600 dark:text-gray-400">
                 {{ formatTokens(item.tokens) }}
               </td>
-              <td class="py-1.5 text-right text-green-600 dark:text-green-400">
+              <td class="py-1.5 text-right text-gray-900 dark:text-gray-100">
                 ${{ formatCost(item.actual_cost) }}
               </td>
             </tr>
@@ -248,6 +256,7 @@ import { useI18n } from 'vue-i18n'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { Doughnut } from 'vue-chartjs'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import { useChartTheme } from '@/composables/useChartTheme'
 import UserBreakdownSubTable from './UserBreakdownSubTable.vue'
 import type { ModelStat, UserSpendingRankingItem, UserBreakdownItem } from '@/types'
 import { getUserBreakdown } from '@/api/admin/dashboard'
@@ -275,6 +284,7 @@ const props = withDefaults(defineProps<{
   showMetricToggle?: boolean
   enableBreakdown?: boolean
   showAccountCost?: boolean
+  showChart?: boolean
   rankingLoading?: boolean
   rankingError?: boolean
   startDate?: string
@@ -295,6 +305,7 @@ const props = withDefaults(defineProps<{
   showMetricToggle: false,
   enableBreakdown: true,
   showAccountCost: true,
+  showChart: true,
   rankingLoading: false,
   rankingError: false
 })
@@ -336,23 +347,10 @@ const emit = defineEmits<{
 
 const enableRankingView = computed(() => props.enableRankingView)
 const showAccountCost = computed(() => props.showAccountCost)
-const distributionColspan = computed(() => showAccountCost.value ? 6 : 5)
+const distributionColspan = computed(() => !props.showChart ? 4 : showAccountCost.value ? 6 : 5)
 const activeView = ref<'model_distribution' | 'spending_ranking'>('model_distribution')
 
-const chartColors = [
-  '#3b82f6',
-  '#10b981',
-  '#f59e0b',
-  '#ef4444',
-  '#8b5cf6',
-  '#ec4899',
-  '#14b8a6',
-  '#f97316',
-  '#6366f1',
-  '#84cc16',
-  '#06b6d4',
-  '#a855f7'
-]
+const { colors: themeColors, seriesColors: chartColors, fontFamily: chartFontFamily } = useChartTheme()
 
 const displayModelStats = computed(() => {
   const sourceStats = props.source === 'upstream'
@@ -374,7 +372,7 @@ const chartData = computed(() => {
     datasets: [
       {
         data: displayModelStats.value.map((m) => toFiniteNumber(props.metric === 'actual_cost' ? m.actual_cost : m.total_tokens)),
-        backgroundColor: chartColors.slice(0, displayModelStats.value.length),
+        backgroundColor: chartColors.value.slice(0, displayModelStats.value.length),
         borderWidth: 0
       }
     ]
@@ -386,7 +384,7 @@ const rankingChartData = computed(() => {
 
   const labels = props.rankingItems.map((item, index) => `#${index + 1} ${getRankingUserLabel(item)}`)
   const data = props.rankingItems.map((item) => toFiniteNumber(item.actual_cost))
-  const backgroundColor = chartColors.slice(0, props.rankingItems.length)
+  const backgroundColor = chartColors.value.slice(0, props.rankingItems.length)
 
   if (otherRankingItem.value) {
     labels.push(t('admin.dashboard.spendingRankingOther'))
@@ -445,6 +443,9 @@ const doughnutOptions = computed(() => ({
       display: false
     },
     tooltip: {
+      backgroundColor: themeColors.value.tooltip, titleColor: themeColors.value.foreground, bodyColor: themeColors.value.text,
+      borderColor: themeColors.value.grid, borderWidth: 1, padding: 12, cornerRadius: 6,
+      titleFont: { family: chartFontFamily, size: 12 }, bodyFont: { family: chartFontFamily, size: 12 },
       callbacks: {
         label: (context: any) => {
           const value = context.raw as number
@@ -468,6 +469,9 @@ const rankingDoughnutOptions = computed(() => ({
       display: false
     },
     tooltip: {
+      backgroundColor: themeColors.value.tooltip, titleColor: themeColors.value.foreground, bodyColor: themeColors.value.text,
+      borderColor: themeColors.value.grid, borderWidth: 1, padding: 12, cornerRadius: 6,
+      titleFont: { family: chartFontFamily, size: 12 }, bodyFont: { family: chartFontFamily, size: 12 },
       callbacks: {
         label: (context: any) => {
           const value = context.raw as number
@@ -523,3 +527,24 @@ const formatCost = (value: number | null | undefined): string => {
   return safeValue.toFixed(4)
 }
 </script>
+
+<style scoped>
+.distribution-panel { color:var(--text-primary); }
+.distribution-table { max-height:320px; }
+.distribution-table table { min-width:490px; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+.distribution-table th { height:32px; padding:0 8px 8px; font-size:11px; font-weight:400; white-space:nowrap; }
+.distribution-table td { height:42px; padding:8px; white-space:nowrap; font-size:12px; }
+.distribution-table th:first-child,.distribution-table td:first-child { padding-left:0; }
+.distribution-table th:last-child,.distribution-table td:last-child { padding-right:0; }
+.distribution-compact :deep(h3) { font-size:13px; font-weight:600; }
+.distribution-compact .distribution-table table { min-width:480px; }
+.distribution-compact .distribution-table td:nth-last-child(2) { color:var(--text-secondary); }
+.distribution-compact .distribution-table td:last-child { color:var(--text-muted); }
+.distribution-compact :deep(button) { font-size:11px; line-height:16px; padding:4px 8px; border-radius:4px; }
+.distribution-mobile-models { display:none; }
+.mobile-model-row { border-top:1px solid var(--border-default); padding:13px 0; }
+.mobile-model-name { display:flex; align-items:center; justify-content:space-between; width:100%; gap:8px; color:var(--text-primary); text-align:left; overflow-wrap:anywhere; font-size:12px; font-weight:500; }
+.mobile-model-metrics { display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:8px; font-size:11px; color:var(--text-muted); }
+.mobile-model-metrics b { margin-left:3px; color:var(--text-secondary); font-weight:500; font-variant-numeric:tabular-nums; }
+@media(max-width:600px) { .distribution-compact .distribution-mobile-models { display:block; } .distribution-compact .distribution-mobile-models + .flex { display:none; } .distribution-table table,.distribution-compact .distribution-table table { min-width:460px; } }
+</style>

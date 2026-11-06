@@ -21,6 +21,17 @@ import zhDashboard from '../locales/zh/dashboard'
 import zhLanding from '../locales/zh/landing'
 import zhMisc from '../locales/zh/misc'
 
+import koAdminAccounts from '../locales/ko/admin/accounts'
+import koAdminChannels from '../locales/ko/admin/channels'
+import koAdminOps from '../locales/ko/admin/ops'
+import koAdminOverview from '../locales/ko/admin/overview'
+import koAdminResources from '../locales/ko/admin/resources'
+import koAdminSettings from '../locales/ko/admin/settings'
+import koCommon from '../locales/ko/common'
+import koDashboard from '../locales/ko/dashboard'
+import koLanding from '../locales/ko/landing'
+import koMisc from '../locales/ko/misc'
+
 // locales/{zh,en}/index.ts 与 admin/index.ts 使用对象展开聚合各域模块，
 // 展开模块之间若出现同名顶层键会静默覆盖。本测试将该风险固化为显式失败。
 type Modules = Record<string, Record<string, unknown>>
@@ -43,7 +54,8 @@ function collisions(modules: Modules): string[] {
 
 const roots: Record<string, Modules> = {
   zh: { landing: zhLanding, common: zhCommon, dashboard: zhDashboard, misc: zhMisc },
-  en: { landing: enLanding, common: enCommon, dashboard: enDashboard, misc: enMisc }
+  en: { landing: enLanding, common: enCommon, dashboard: enDashboard, misc: enMisc },
+  ko: { landing: koLanding, common: koCommon, dashboard: koDashboard, misc: koMisc }
 }
 
 const admins: Record<string, Modules> = {
@@ -62,6 +74,14 @@ const admins: Record<string, Modules> = {
     resources: enAdminResources,
     ops: enAdminOps,
     settings: enAdminSettings
+  },
+  ko: {
+    overview: koAdminOverview,
+    channels: koAdminChannels,
+    accounts: koAdminAccounts,
+    resources: koAdminResources,
+    ops: koAdminOps,
+    settings: koAdminSettings
   }
 }
 

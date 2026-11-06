@@ -79,6 +79,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
+import { getIntlLocale } from '@/i18n'
 
 interface DatePreset {
   labelKey: string
@@ -229,7 +230,7 @@ const displayValue = computed(() => {
 
 const formatDate = (dateStr: string): string => {
   const date = new Date(dateStr + 'T00:00:00')
-  const dateLocale = locale.value === 'zh' ? 'zh-CN' : 'en-US'
+  const dateLocale = getIntlLocale(locale.value)
   return date.toLocaleDateString(dateLocale, { month: 'short', day: 'numeric' })
 }
 
@@ -324,7 +325,8 @@ onUnmounted(() => {
 <style scoped>
 .date-picker-trigger {
   @apply flex items-center gap-2;
-  @apply rounded-lg px-3 py-2 text-sm;
+  @apply rounded-md px-3 py-[5px] text-sm;
+  min-height: 32px;
   @apply bg-white dark:bg-dark-800;
   @apply border border-gray-200 dark:border-dark-600;
   @apply text-gray-700 dark:text-gray-300;
@@ -353,7 +355,7 @@ onUnmounted(() => {
 .date-picker-dropdown {
   @apply absolute left-0 z-[100] mt-2;
   @apply bg-white dark:bg-dark-800;
-  @apply rounded-xl;
+  @apply rounded-md;
   @apply border border-gray-200 dark:border-dark-700;
   @apply shadow-lg shadow-black/10 dark:shadow-black/30;
   @apply overflow-hidden;
@@ -435,4 +437,8 @@ onUnmounted(() => {
   opacity: 0;
   transform: translateY(-8px);
 }
+</style>
+
+<style scoped>
+@media (pointer: coarse) { .date-picker-trigger { min-height: 44px; } }
 </style>

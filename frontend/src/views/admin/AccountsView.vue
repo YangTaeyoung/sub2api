@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <TablePageLayout>
+    <TablePageLayout class="accounts-table-layout">
       <template #filters>
         <div class="flex flex-wrap-reverse items-start justify-between gap-3">
           <AccountTableFilters
@@ -203,7 +203,9 @@
           default-sort-key="name"
           default-sort-order="asc"
           :sort-storage-key="ACCOUNT_SORT_STORAGE_KEY"
-          :estimate-row-height="156"
+          :estimate-row-height="84"
+          :sticky-first-column="false"
+          :sticky-actions-column="false"
           :overscan="5"
           :virtualize-threshold="50"
         >
@@ -223,7 +225,7 @@
             <span class="font-mono text-xs text-gray-500 dark:text-gray-400">#{{ value }}</span>
           </template>
           <template #cell-name="{ row, value }">
-            <div class="flex flex-col">
+            <div class="flex min-w-[160px] max-w-[220px] flex-col">
               <HelpTooltip
                 v-if="accountHomepageUrl(row)"
                 :content="accountHomepageUrl(row)"
@@ -256,6 +258,15 @@
             <span v-else class="text-sm text-gray-400 dark:text-dark-500">-</span>
           </template>
           <template #cell-platform_type="{ row }">
+            <details class="account-platform-details">
+              <summary>
+                <PlatformTypeBadge compact :platform="row.platform" :type="row.type"
+                  :auth-mode="getOpenAIAuthMode(row)" :plan-type="getAccountPlanType(row)"
+                  :privacy-mode="row.extra?.privacy_mode || row.parent_privacy_mode"
+                  :subscription-expires-at="row.credentials?.subscription_expires_at || row.parent_subscription_expires_at" />
+                <span class="text-xs text-gray-400" aria-hidden="true">⌄</span>
+              </summary>
+              <div class="account-platform-expanded">
             <div class="flex min-w-0 flex-col gap-1">
               <div class="flex flex-wrap items-center gap-1">
                 <PlatformTypeBadge :platform="row.platform" :type="row.type"
@@ -282,6 +293,8 @@
                 <span>{{ getOpenAICompactMeta(row)?.label }}</span>
               </div>
             </div>
+              </div>
+            </details>
           </template>
           <template #cell-capacity="{ row }">
             <AccountCapacityCell :account="row" />
@@ -314,6 +327,7 @@
           </template>
           <template #cell-usage="{ row }">
             <AccountUsageCell
+              compact
               :account="row"
               :today-stats="todayStatsByAccountId[String(row.id)] ?? null"
               :today-stats-loading="todayStatsLoading"
@@ -435,17 +449,17 @@
           </template>
           <template #cell-actions="{ row }">
             <div class="flex items-center gap-1">
-              <button @click="handleEdit(row)" class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-primary-600 dark:hover:bg-dark-700 dark:hover:text-primary-400">
+              <button @click="handleEdit(row)" :aria-label="t('common.edit')" :title="t('common.edit')" class="account-row-action flex items-center justify-center rounded-md p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-primary-600 dark:hover:bg-dark-700 dark:hover:text-primary-400">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
-                <span class="text-xs">{{ t('common.edit') }}</span>
+              <span class="sr-only">{{ t('common.edit') }}</span>
               </button>
-              <button @click="handleDelete(row)" class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400">
+              <button @click="handleDelete(row)" :aria-label="t('common.delete')" :title="t('common.delete')" class="account-row-action flex items-center justify-center rounded-md p-2 text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
-                <span class="text-xs">{{ t('common.delete') }}</span>
+              <span class="sr-only">{{ t('common.delete') }}</span>
               </button>
-              <button @click="openMenu(row, $event)" class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-dark-700 dark:hover:text-white">
+              <button @click="openMenu(row, $event)" :aria-label="t('common.more')" :title="t('common.more')" class="account-row-action flex items-center justify-center rounded-md p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-dark-700 dark:hover:text-white">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" /></svg>
-                <span class="text-xs">{{ t('common.more') }}</span>
+              <span class="sr-only">{{ t('common.more') }}</span>
               </button>
             </div>
           </template>
@@ -648,7 +662,7 @@ const accountToolsDropdownStyle = computed(() => ({
   width: `${accountToolsDropdownPosition.width}px`
 }))
 const hiddenColumns = reactive<Set<string>>(new Set())
-const DEFAULT_HIDDEN_COLUMNS = ['today_stats', 'proxy', 'notes', 'scheduler_score', 'rate_multiplier']
+const DEFAULT_HIDDEN_COLUMNS = ['today_stats', 'proxy', 'notes', 'scheduler_score', 'rate_multiplier', 'id', 'groups', 'priority', 'upstream_billing_rate', 'last_used_at', 'created_at', 'expires_at']
 const HIDDEN_COLUMNS_KEY = 'account-hidden-columns'
 // One-time migration: hide scheduler score for existing admins too, because showing it opt-ins to heavy backend scoring.
 const HIDDEN_COLUMNS_VERSION_KEY = 'account-hidden-columns-version'
@@ -2625,6 +2639,19 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.accounts-table-layout { height: auto; }
+.accounts-table-layout :deep(.layout-section-scrollable) { flex: none; }
+.accounts-table-layout :deep(.table-scroll-container) { height: auto; background: var(--surface-panel); }
+.accounts-table-layout :deep(.table-wrapper) { flex: none; max-height: calc(100dvh - 265px); scrollbar-gutter: auto; }
+.accounts-table-layout :deep(.table-wrapper table) { min-width: 100%; }
+.accounts-table-layout :deep(.table-wrapper td) { vertical-align: middle; padding-top: 16px; padding-bottom: 16px; }
+.accounts-table-layout :deep(.table-wrapper th) { white-space: nowrap; }
+.account-platform-details { min-width: 140px; max-width: 190px; }
+.account-platform-details > summary { display: flex; align-items: center; gap: 8px; justify-content: space-between; list-style: none; cursor: pointer; }
+.account-platform-details > summary::-webkit-details-marker { display: none; }
+.account-platform-expanded { white-space: normal; padding-top: 12px; }
+.account-row-action { width: 30px; height: 30px; }
+@media (max-width: 1023px) { .accounts-table-layout :deep(.table-wrapper) { max-height: none; } }
 .account-tools-menu-item {
   @apply flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-dark-700;
 }

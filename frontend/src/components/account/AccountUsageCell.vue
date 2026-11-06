@@ -1,5 +1,20 @@
 <template>
   <div ref="rootRef" v-if="showUsageWindows">
+    <details class="account-usage-details" :class="{ 'is-compact': isCompact }" :open="!isCompact">
+      <summary v-if="isCompact" class="account-usage-summary">
+        <span v-if="loading" class="text-xs text-gray-500 dark:text-dark-400">{{ t('common.loading') }}</span>
+        <span v-else-if="error || usageInfo?.error" class="block max-w-[210px] truncate text-xs text-red-600 dark:text-red-400" :title="error || usageInfo?.error">{{ error || usageInfo?.error }}</span>
+        <span v-else-if="needsReauth" class="text-xs text-red-600 dark:text-red-400">{{ t('admin.accounts.needsReauth') }}</span>
+        <span v-else-if="isForbidden" class="text-xs text-red-600 dark:text-red-400">{{ forbiddenLabel }}</span>
+        <span v-else class="usage-window-summary">
+          <span v-for="window in compactWindows" :key="window.label" class="usage-window-value">
+            <span>{{ window.label }}</span><strong>{{ window.value }}</strong>
+          </span>
+          <span v-if="!compactWindows.length" class="text-gray-500 dark:text-dark-400">—</span>
+        </span>
+        <span class="usage-details-label">{{ t('common.more') }} <span aria-hidden="true">⌄</span></span>
+      </summary>
+      <div class="account-usage-expanded">
     <!-- Anthropic OAuth and Setup Token accounts: fetch real usage data -->
     <template
       v-if="
@@ -613,6 +628,8 @@
     <template v-else>
       <div class="text-xs text-gray-400">-</div>
     </template>
+      </div>
+    </details>
   </div>
 
   <!-- Non-OAuth/Setup-Token accounts -->
@@ -730,6 +747,7 @@ const USAGE_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 const props = withDefaults(
   defineProps<{
     account: Account
+    compact?: boolean
     todayStats?: WindowStats | null
     todayStatsLoading?: boolean
     manualRefreshToken?: number
@@ -739,6 +757,7 @@ const props = withDefaults(
     requestBatchedUsage?: ((account: Account, options?: { force?: boolean }) => void) | null
   }>(),
   {
+    compact: false,
     todayStats: null,
     todayStatsLoading: false,
     manualRefreshToken: 0,
@@ -755,6 +774,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const isCompact = computed(() => props.compact && ['openai', 'anthropic'].includes(props.account.platform) && ['oauth', 'setup-token'].includes(props.account.type))
 const desktopViewportQuery = '(min-width: 768px)'
 
 const unmounted = ref(false)
@@ -764,6 +784,16 @@ const loading = ref(false)
 const activeQueryLoading = ref(false)
 const error = ref<string | null>(null)
 const usageInfo = ref<AccountUsageInfo | null>(null)
+const compactWindows = computed(() => {
+  const windows = [
+    { label: '5h', data: usageInfo.value?.five_hour },
+    { label: '7d', data: usageInfo.value?.seven_day },
+  ]
+  return windows.filter(window => window.data != null).map(window => ({
+    label: window.label,
+    value: `${Math.round(window.data!.utilization)}%`,
+  }))
+})
 watch(usageInfo, (usage) => {
   if (usage) emit('usage-loaded', usage)
 })
@@ -1781,3 +1811,15 @@ onUnmounted(() => {
   desktopViewportMediaQuery = null
 })
 </script>
+
+<style scoped>
+.account-usage-summary { list-style: none; cursor: pointer; min-width: 150px; }
+.account-usage-summary::-webkit-details-marker { display: none; }
+.usage-window-summary { display: flex; align-items: center; gap: 16px; min-height: 20px; }
+.usage-window-value { display: inline-flex; align-items: baseline; gap: 6px; font-size: 12px; color: var(--text-muted); }
+.usage-window-value strong { color: var(--text-primary); font-weight: 500; font-variant-numeric: tabular-nums; }
+.usage-details-label { display: flex; align-items: center; gap: 5px; color: var(--text-muted); font-size: 12px; line-height: 18px; }
+.account-usage-details[open] > .account-usage-summary .usage-details-label { color: var(--accent-text); }
+.account-usage-details[open] > .account-usage-summary .usage-details-label > span { transform: rotate(180deg); }
+.account-usage-details.is-compact > .account-usage-expanded { width: 230px; max-width: 100%; overflow-x: auto; white-space: normal; margin-top: 10px; padding: 10px 0; border-top: 1px solid var(--border-default); }
+</style>

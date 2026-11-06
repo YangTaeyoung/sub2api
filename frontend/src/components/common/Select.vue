@@ -8,7 +8,7 @@
       :aria-expanded="isOpen"
       :aria-haspopup="true"
       :id="id"
-      :aria-label="ariaLabel ?? 'Select option'"
+      :aria-label="ariaLabel ?? t('common.selectOption')"
       :aria-describedby="ariaDescribedby"
       :class="[
         'select-trigger',
@@ -29,7 +29,7 @@
         class="select-clear"
         role="button"
         tabindex="-1"
-        aria-label="Clear selection"
+        :aria-label="t('common.clear')"
         @click.stop="clearSelection"
         @mousedown.stop
         @keydown.enter.stop.prevent="clearSelection"
@@ -520,7 +520,8 @@ onUnmounted(() => {
 <style scoped>
 .select-trigger {
   @apply flex w-full items-center justify-between gap-2;
-  @apply rounded-xl px-4 py-2.5 text-sm;
+  @apply rounded-md px-3 py-[5px] text-sm;
+  min-height: 32px;
   @apply bg-white dark:bg-dark-800;
   @apply border border-gray-200 dark:border-dark-600;
   @apply text-gray-900 dark:text-gray-100;
@@ -561,7 +562,7 @@ onUnmounted(() => {
 .select-dropdown-portal {
   @apply w-max min-w-[200px];
   @apply bg-white dark:bg-dark-800;
-  @apply rounded-xl;
+  @apply rounded-md;
   @apply border border-gray-200 dark:border-dark-700;
   @apply shadow-lg shadow-black/10 dark:shadow-black/30;
   @apply overflow-hidden;
@@ -586,7 +587,7 @@ onUnmounted(() => {
 
 .select-dropdown-portal .select-option {
   @apply flex items-center justify-between gap-2;
-  @apply px-4 py-2.5 text-sm;
+  @apply px-3 py-1.5 text-sm;
   @apply text-gray-700 dark:text-gray-300;
   @apply cursor-pointer transition-colors duration-150;
   @apply hover:bg-gray-50 dark:hover:bg-dark-700;
@@ -636,4 +637,8 @@ onUnmounted(() => {
   opacity: 0;
   transform: translateY(-8px);
 }
+</style>
+
+<style scoped>
+@media (pointer: coarse) { .select-trigger { min-height: 44px; } }
 </style>
