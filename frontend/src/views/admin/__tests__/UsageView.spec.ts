@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { defineComponent, reactive, ref } from 'vue'
+import { CanceledError } from 'axios'
 
 import UsageView from '../UsageView.vue'
 
@@ -200,6 +201,60 @@ describe('admin UsageView route filters', () => {
   afterEach(() => {
     Object.keys(routeQuery).forEach((key) => delete routeQuery[key])
     vi.useRealTimers()
+  })
+
+  it.each([new CanceledError('request canceled'), new Error('transport stopped after abort')])(
+    'does not log an interrupted usage request after unmount: %s',
+    async (cancellationError) => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+      let requestSignal: AbortSignal | undefined
+      list.mockImplementationOnce((_params, options: { signal: AbortSignal }) => {
+        requestSignal = options.signal
+        return new Promise((_, reject) => {
+          options.signal.addEventListener('abort', () => reject(cancellationError), { once: true })
+        })
+      })
+      const wrapper = mountRouteFilteredUsageView()
+      try {
+        await wrapper.vm.$nextTick()
+        expect(requestSignal?.aborted).toBe(false)
+        wrapper.unmount()
+        await flushPromises()
+        expect(requestSignal?.aborted).toBe(true)
+        expect(consoleError).not.toHaveBeenCalled()
+      } finally {
+        consoleError.mockRestore()
+      }
+    },
+  )
+
+  it('does not log Axios cancellation when the local signal has not been aborted', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    list.mockRejectedValueOnce(new CanceledError('request canceled'))
+    const wrapper = mountRouteFilteredUsageView()
+    try {
+      await flushPromises()
+      expect(list.mock.calls[0][1].signal.aborted).toBe(false)
+      expect(consoleError).not.toHaveBeenCalled()
+    } finally {
+      wrapper.unmount()
+      consoleError.mockRestore()
+    }
+  })
+
+  it('keeps logging genuine usage request failures', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const failure = new Error('usage backend unavailable')
+    list.mockRejectedValueOnce(failure)
+    const wrapper = mountRouteFilteredUsageView()
+    try {
+      await flushPromises()
+      expect(consoleError).toHaveBeenCalledOnce()
+      expect(consoleError).toHaveBeenCalledWith('Failed to load usage logs:', failure)
+    } finally {
+      wrapper.unmount()
+      consoleError.mockRestore()
+    }
   })
 
   it('filters actual usage requests by routed model and date range', async () => {

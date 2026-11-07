@@ -186,6 +186,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { isCancel } from 'axios'
 import { saveAs } from 'file-saver'
 import { useRoute } from 'vue-router'
 import { useAppStore } from '@/stores/app'; import { adminAPI } from '@/api/admin'; import { adminUsageAPI } from '@/api/admin/usage'
@@ -397,7 +398,12 @@ const loadLogs = async () => {
       { signal: c.signal }
     )
     if(!c.signal.aborted) { usageLogs.value = res.items; pagination.total = res.total }
-  } catch (error: any) { if(error?.name !== 'AbortError') console.error('Failed to load usage logs:', error) } finally { if(abortController === c) loading.value = false }
+  } catch (error: unknown) {
+    if (c.signal.aborted || isCancel(error) || (error instanceof Error && error.name === 'AbortError')) return
+    console.error('Failed to load usage logs:', error)
+  } finally {
+    if (abortController === c) loading.value = false
+  }
 }
 const loadStats = async (force = false) => {
   const seq = ++statsReqSeq
