@@ -3,7 +3,8 @@ import { mount, RouterLinkStub } from '@vue/test-utils'
 
 import HomeView from '../HomeView.vue'
 
-const { appStore, authStore } = vi.hoisted(() => ({
+const { appStore, authStore, copyToClipboard } = vi.hoisted(() => ({
+  copyToClipboard: vi.fn(),
   appStore: {
     cachedPublicSettings: {} as Record<string, unknown>,
     siteName: 'Fallback site',
@@ -18,6 +19,10 @@ const { appStore, authStore } = vi.hoisted(() => ({
     user: null as { email?: string } | null,
     checkAuth: vi.fn(),
   },
+}))
+
+vi.mock('@/composables/useClipboard', () => ({
+  useClipboard: () => ({ copied: false, copyToClipboard }),
 }))
 
 vi.mock('@/stores', () => ({
@@ -73,6 +78,7 @@ describe('HomeView compact mode', () => {
     authStore.user = null
     authStore.checkAuth.mockClear()
     appStore.fetchPublicSettings.mockClear()
+    copyToClipboard.mockClear()
     localStorage.clear()
     vi.spyOn(window, 'matchMedia').mockReturnValue({ matches: false } as MediaQueryList)
   })
@@ -108,7 +114,7 @@ describe('HomeView compact mode', () => {
     const wrapper = mountHome(settings)
 
     expect(wrapper.find('[data-testid="compact-home"]').exists()).toBe(false)
-    expect(wrapper.find('.terminal-container').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="gateway-home"]').exists()).toBe(true)
   })
 
   it('links unauthenticated visitors to login', () => {
@@ -180,5 +186,67 @@ describe('HomeView compact mode', () => {
     })
 
     expect(modelPlazaDestination(wrapper)).toBeUndefined()
+  })
+})
+
+
+describe('HomeView gateway entry', () => {
+  beforeEach(() => {
+    authStore.isAuthenticated = false
+    authStore.isAdmin = false
+    copyToClipboard.mockClear()
+    localStorage.clear()
+    vi.spyOn(window, 'matchMedia').mockReturnValue({ matches: false } as MediaQueryList)
+  })
+
+  it.each(['https://gateway.example', 'https://gateway.example/', 'https://gateway.example/v1', 'https://gateway.example/v1/'])('normalizes the configured API base %s without doubling v1', async (base) => {
+    const wrapper = mountHome({ api_base_url: base })
+    expect(wrapper.get('.endpoint-address code').text()).toBe('https://gateway.example/v1/responses')
+    await wrapper.get('#protocol-anthropic').trigger('click')
+    expect(wrapper.get('.endpoint-address code').text()).toBe('https://gateway.example/v1/messages')
+    expect(wrapper.get('#protocol-anthropic').attributes('aria-selected')).toBe('true')
+    wrapper.unmount()
+  })
+
+  it('copies the selected request URL only on an explicit click', async () => {
+    const wrapper = mountHome({ api_base_url: 'https://gateway.example/proxy/v1/' })
+    expect(copyToClipboard).not.toHaveBeenCalled()
+    await wrapper.get('#protocol-anthropic').trigger('click')
+    await wrapper.get('.endpoint-copy').trigger('click')
+    expect(copyToClipboard).toHaveBeenCalledWith('https://gateway.example/proxy/v1/messages')
+    wrapper.unmount()
+  })
+
+  it('supports arrow and boundary keys on the protocol tabs', async () => {
+    const wrapper = mountHome()
+    await wrapper.get('#protocol-openai').trigger('keydown', { key: 'ArrowRight' })
+    expect(wrapper.get('#protocol-anthropic').attributes('tabindex')).toBe('0')
+    expect(wrapper.get('.endpoint-address').attributes('aria-labelledby')).toBe('protocol-anthropic')
+    for (const tab of wrapper.findAll('[role=tab]')) {
+      expect(wrapper.find('#' + tab.attributes('aria-controls')).exists()).toBe(true)
+    }
+    await wrapper.get('#protocol-anthropic').trigger('keydown', { key: 'Home' })
+    expect(wrapper.get('#protocol-openai').attributes('aria-selected')).toBe('true')
+    wrapper.unmount()
+  })
+
+  it('keeps custom subtitles and localizes the legacy default text', () => {
+    const custom = mountHome({ site_subtitle: 'My own gateway' })
+    expect(custom.get('.home-intro-copy > p').text()).toBe('My own gateway')
+    custom.unmount()
+    const standard = mountHome({ site_subtitle: 'Subscription to API Conversion Platform' })
+    expect(standard.get('.home-intro-copy > p').text()).toBe('home.gateway.description')
+    standard.unmount()
+  })
+
+  it('keeps the main action role-aware in the default page', () => {
+    const anonymous = mountHome()
+    expect(anonymous.findAllComponents(RouterLinkStub).find(link => link.classes().includes('home-primary-action'))?.props('to')).toBe('/login')
+    anonymous.unmount()
+    authStore.isAuthenticated = true
+    authStore.isAdmin = true
+    const admin = mountHome()
+    expect(admin.findAllComponents(RouterLinkStub).find(link => link.classes().includes('home-primary-action'))?.props('to')).toBe('/admin/dashboard')
+    admin.unmount()
   })
 })

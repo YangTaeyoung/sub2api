@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-06T17:13:20.806905+00:00",
+  "generatedAt": "2026-11-07T02:49:38.956265+00:00",
   "title": "Design System: Sub2API",
   "extensions": {
     "colorMeta": {
@@ -137,6 +137,14 @@
       "refersTo": "card",
       "html": "<section class=\"ds-card\"><h3>Usage</h3><p>Choose a date range to inspect usage.</p></section>",
       "css": ".ds-card{font-family:'Pretendard Variable',-apple-system,sans-serif;font-size:13px;line-height:20px;padding:24px;border:1px solid var(--border-default,#e1e3e8);border-radius:8px;background:var(--surface-panel,#fff);color:var(--text-primary,#181c25);box-shadow:none;}.ds-card h3{margin:0;font-size:13px;line-height:20px;font-weight:600;}.ds-card p{margin:8px 0 0;color:var(--text-secondary,#515968);}"
+    },
+    {
+      "name": "Home primary action",
+      "kind": "button",
+      "refersTo": "home-primary-action",
+      "description": "Default Home entry action; fixed indigo and white in both themes, with a 44px mobile minimum height. This public specimen shows anonymous sign-in.",
+      "html": "<a class=\"ds-home-primary\" href=\"/login\">로그인하고 시작하기<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14m-7-7 7 7-7 7\"/></svg></a>",
+      "css": ".ds-home-primary{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:20px;min-height:42px;padding:10px 16px;border:1px solid #5b5bd6;border-radius:6px;background:#5b5bd6;color:#fff;font-family:'Pretendard Variable',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:13px;line-height:1.55;font-weight:500;text-decoration:none;transition:filter .15s;}.ds-home-primary:hover{filter:brightness(1.08);}.ds-home-primary:focus-visible{outline:2px solid var(--accent-primary,#5b5bd6);outline-offset:3px;}@media(max-width:720px){.ds-home-primary{min-height:44px;gap:12px;}}@media(prefers-reduced-motion:reduce){.ds-home-primary{transition:none;}}"
     }
   ],
   "narrative": {
