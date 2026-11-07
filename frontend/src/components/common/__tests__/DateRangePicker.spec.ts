@@ -94,4 +94,17 @@ describe('DateRangePicker', () => {
       }
     ])
   })
+  it('omits unsupported rolling presets from both the menu and recognized label', async () => {
+    const now = new Date()
+    const start = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+    const wrapper = mount(DateRangePicker, {
+      props: { startDate: formatLocalDate(start), endDate: formatLocalDate(now), excludePresets: ['last24Hours'] },
+      global: { stubs: { Icon: true } }
+    })
+    expect(wrapper.get('.date-picker-trigger').text()).not.toContain('Last 24 Hours')
+    await wrapper.get('.date-picker-trigger').trigger('click')
+    expect(wrapper.findAll('.date-picker-preset').map(button => button.text())).not.toContain('Last 24 Hours')
+    wrapper.unmount()
+  })
+
 })

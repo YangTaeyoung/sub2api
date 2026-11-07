@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
+import { createMemoryHistory, createRouter } from 'vue-router'
 
 import ModelDistributionChart from '../ModelDistributionChart.vue'
 
@@ -102,6 +103,71 @@ describe('ModelDistributionChart', () => {
     expect(label).toBe('model-a: 1.00K (66.7%)')
   })
 
+  it('sorts requests and formats the chart tooltip as a request count', () => {
+    const wrapper = mount(ModelDistributionChart, {
+      props: { modelStats: [modelStats[0], { ...modelStats[1], requests: 3000 }], metric: 'requests' },
+      global: { stubs: { LoadingSpinner: true } },
+    })
+    const chartData = JSON.parse(wrapper.find('.chart-data').text())
+    expect(chartData.labels).toEqual(['model-b', 'model-a'])
+    expect(chartData.datasets[0].data).toEqual([3000, 8])
+    expect(wrapper.findAll('tbody tr')[0].text()).toContain('model-b')
+    const options = (wrapper.vm as any).$?.setupState.doughnutOptions
+    expect(options.plugins.tooltip.callbacks.label({
+      label: 'model-b', raw: 3000, dataset: { data: [3000, 8] },
+    })).toBe('model-b: 3,000 (99.7%)')
+    wrapper.unmount()
+  })
+
+  it('links desktop and mobile models to usage logs with the selected date range', async () => {
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [{ path: '/', component: { template: '<div />' } }, { path: '/admin/usage', component: { template: '<div />' } }],
+    })
+    await router.push('/')
+    const wrapper = mount(ModelDistributionChart, {
+      props: {
+        modelStats: [{ ...modelStats[0], model: 'model/a beta' }],
+        showChart: false, modelUsageLinks: true, enableBreakdown: false,
+        startDate: '2026-11-01', endDate: '2026-11-07',
+      },
+      global: { plugins: [router], stubs: { LoadingSpinner: true } },
+    })
+    const links = wrapper.findAll('a.model-usage-link')
+    expect(links).toHaveLength(2)
+    for (const link of links) {
+      expect(link.text()).toBe('model/a beta')
+      expect(router.resolve(link.attributes('href')).query).toEqual({
+        model: 'model/a beta', start_date: '2026-11-01', end_date: '2026-11-07',
+      })
+    }
+    await links[0].trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.path).toBe('/admin/usage')
+    expect(router.currentRoute.value.query.model).toBe('model/a beta')
+    expect(wrapper.findAll('[aria-expanded]')).toHaveLength(0)
+    wrapper.unmount()
+  })
+
+  it('scales compact contribution bars to the active metric maximum and handles zero values', async () => {
+    const wrapper = mount(ModelDistributionChart, {
+      props: { modelStats, showChart: false, metric: 'actual_cost', enableBreakdown: false },
+      global: { stubs: { LoadingSpinner: true } },
+    })
+    expect(wrapper.find('th[aria-sort="descending"]').text()).toBe('usage.cost')
+    expect(wrapper.find('.active-mobile-metric').text()).toContain('$1.40')
+    const bars = wrapper.findAll('.distribution-table .metric-contribution')
+    expect(bars).toHaveLength(2)
+    expect(bars[0].attributes('style')).toContain('width: 100%')
+    expect(bars[1].attributes('style')).toContain('width: 14.2857%')
+    await wrapper.setProps({ metric: 'requests' })
+    expect(wrapper.find('th[aria-sort="descending"]').text()).toBe('Requests')
+    expect(wrapper.findAll('tbody tr')[0].text()).toContain('model-a')
+    await wrapper.setProps({ modelStats: [{ ...modelStats[0], requests: 0 }] })
+    expect(wrapper.find('.distribution-table .metric-contribution').attributes('style')).toContain('width: 0%')
+    wrapper.unmount()
+  })
+
   it('uses actual_cost and reorders rows in actual cost mode', () => {
     const wrapper = mount(ModelDistributionChart, {
       props: {
@@ -148,6 +214,30 @@ describe('ModelDistributionChart', () => {
     expect(wrapper.text()).not.toContain('Account Cost')
     expect(wrapper.findAll('thead th')).toHaveLength(5)
     expect(wrapper.findAll('tbody tr')[0].findAll('td')).toHaveLength(5)
+  })
+
+  it('provides native ranking buttons with one keyboard activation event and preserves row clicks', async () => {
+    const user = { user_id: 7, email: '', username: 'Sample user', actual_cost: 2, requests: 4, tokens: 20 }
+    const wrapper = mount(ModelDistributionChart, {
+      props: { modelStats: [], showChart: false, enableRankingView: true, rankingItems: [user], rankingTotalActualCost: 3 },
+      global: { stubs: { LoadingSpinner: true } },
+    })
+    await wrapper.findAll('button').find((button) => button.text() === 'User Spending Ranking')!.trigger('click')
+    const rows = wrapper.findAll('tbody tr')
+    const userButton = rows[0].find('button')
+    expect(userButton.exists()).toBe(true)
+    expect(userButton.attributes('type')).toBe('button')
+    expect(userButton.text()).toBe('Sample user')
+    expect(userButton.attributes('tabindex')).not.toBe('-1')
+    // Native button keyboard activation produces a click without pointer detail.
+    userButton.element.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 0 }))
+    expect(wrapper.emitted('ranking-click')).toEqual([[user]])
+    await rows[0].trigger('click')
+    expect(wrapper.emitted('ranking-click')).toEqual([[user], [user]])
+    expect(rows[1].find('button').exists()).toBe(false)
+    await rows[1].trigger('click')
+    expect(wrapper.emitted('ranking-click')).toHaveLength(2)
+    wrapper.unmount()
   })
 
   it('uses the dashboard user label policy and renders Others with a dedicated chart color', async () => {

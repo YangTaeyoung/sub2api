@@ -31,12 +31,13 @@ typography:
     fontSize: "24px"
     fontWeight: 600
     lineHeight: "32px"
-    letterSpacing: "-0.025em"
+    letterSpacing: "-0.02em"
   metric:
     fontFamily: "Pretendard Variable, -apple-system, sans-serif"
-    fontSize: "28px"
+    fontSize: "30px"
     fontWeight: 550
-    lineHeight: "34px"
+    lineHeight: "36px"
+    letterSpacing: "-0.025em"
   body:
     fontFamily: "Pretendard Variable, -apple-system, sans-serif"
     fontSize: "13px"
@@ -85,6 +86,9 @@ components:
     rounded: "{rounded.md}"
     typography: "{typography.label}"
     padding: "10px 16px"
+  dashboard-metric:
+    typography: "{typography.metric}"
+    padding: "20px 24px 18px"
 ---
 
 # Design System: Sub2API
@@ -116,7 +120,7 @@ The configured fallback stack includes Apple SD Gothic Neo, Noto Sans KR, Segoe 
 - Body and navigation: 13px; Tailwind `text-sm` uses 20px line height.
 - Metadata: 12px / 18px; chart annotations additionally use 11px.
 - App header title: 13px / 20px, weight 550.
-- Overview title: 24px / 32px, weight 600; overview metric: 28px / 34px, weight 550.
+- Overview title: 24px / 32px, weight 600; selected-period metric: 30px / 36px, weight 550. At 640px and below these become 22px / 30px and 22px / 28px respectively. Metric captions stay subordinate at 11px / 18px on desktop and 10px / 16px on mobile.
 - Settings section headings: 14px / 20px, weight 600.
 
 Korean body text keeps normal tracking. The overview title and numeric metrics have their own small negative tracking. Sources: `frontend/src/style.css`, `frontend/tailwind.config.js`, `frontend/src/views/admin/DashboardView.vue`, and `frontend/src/views/admin/SettingsView.vue`.
@@ -127,7 +131,9 @@ The default Home entry uses the same Pretendard family with a quiet, semibold he
 
 The desktop shell uses a 228px sidebar, a 52px collapsed rail, a 48px app header, and 24px main gutters. Navigation items have a 32px minimum height and 16px glyphs. Below 1024px the sidebar becomes a drawer and main gutters become 20px; below 640px gutters become 16px. Coarse-pointer shared buttons, fields, and navigation have a 44px minimum height.
 
-The overview has a maximum width of 1440px and a primary content area with a secondary column. It stacks as viewport space decreases. Settings uses a 960px maximum form width and a horizontally scrollable, intrinsic-width tab strip. Accounts and API keys use natural table height with a viewport-limited scroll area for longer lists. Fresh column defaults show essential fields; saved column preferences remain in effect. Extra account usage and provider metadata remain available in disclosures.
+The overview has a maximum width of 1440px. Its primary column places three metric selectors and one trend chart in a shared panel, followed by model usage; a 296px secondary column carries account health, independent server operations, and cumulative totals. Columns use a 24px gap. Token/cache detail and user analysis remain in disclosures below this first reading sequence. At 1180px and below, the secondary area moves after usage unless account trouble promotes it before usage; account health opens automatically for trouble while routine panels collapse. At 640px and below, secondary panels stack, date controls use the available width, and metric selectors retain three aligned columns with smaller values and wrapping captions. Below 600px, compact model rows replace the desktop model table with wrapping names, labelled values, selected-metric emphasis, and a thin relative-value bar. Sources: `frontend/src/views/admin/DashboardView.vue:20–67`, `:600–624`, `:693–694`; `frontend/src/components/charts/ModelDistributionChart.vue:99–110`, `:584–592`.
+
+Settings uses a 960px maximum form width and a horizontally scrollable, intrinsic-width tab strip. Accounts and API keys use natural table height with a viewport-limited scroll area for longer lists. Fresh column defaults show essential fields; saved column preferences remain in effect. Extra account usage and provider metadata remain available in disclosures.
 
 Sources: `frontend/src/style.css`, `frontend/src/components/layout/AppLayout.vue`, `frontend/src/views/admin/DashboardView.vue`, `frontend/src/views/admin/SettingsView.vue`, and `frontend/src/views/admin/AccountsView.vue`.
 
@@ -149,9 +155,17 @@ Controls use 6px corners, standard panels use 8px corners, and small badges use 
 
 **Navigation.** Sidebar active items use a quiet indigo-tinted surface. Collapsed items retain accessible labels. Mobile navigation exposes full labels, closes with Escape, and uses a backdrop. Settings tabs are 40px tall on fine pointers and 44px on coarse pointers, with one indigo underline and no truncation rule. See `frontend/src/components/layout/AppSidebar.vue` and `frontend/src/views/admin/SettingsView.vue`.
 
+The administrator sidebar groups existing permission-filtered entries into analysis, connection management, and administration. Analysis puts overview and usage records together; grouping retains the existing route/access gates, omits empty groups, and preserves accessible labels when collapsed. Sources: `frontend/src/components/layout/AppSidebar.vue:34–107`, `:877–894`.
+
 **Tables and account disclosures.** Shared headers use 12px labels and neutral backgrounds. Numeric table content uses tabular numerals. The Accounts route presents compact provider and supported OAuth usage summaries; original detail content and actions stay mounted in native disclosures. Degraded usage errors remain visible in the collapsed summary. Edit, delete, and more actions retain accessible labels. See `frontend/src/components/common/DataTable.vue`, `frontend/src/components/account/AccountUsageCell.vue`, and `frontend/src/views/admin/AccountsView.vue`.
 
-**Charts.** The token trend uses thin line series for multiple time buckets and bars for one bucket. Token volume and cache hit rate use separate modes; a percentage scale runs from 0 to 100. Series controls and a data table supplement the canvas. Model distribution includes a compact table and responsive row presentation. Shared chart colors follow the actual document theme class. See `frontend/src/components/charts/TokenUsageTrend.vue`, `frontend/src/components/charts/ModelDistributionChart.vue`, and `frontend/src/composables/useChartTheme.ts`.
+**Dashboard report.** The three selected-period totals are also the chart's tabs: recorded deducted cost in USD, requests, and total tokens. One selected metric drives the trend values, model descending order, highlighted table column, and relative-value bars; those bars compare each model with the largest model value, not a percentage of the total. Metric tabs use a quiet neutral fill plus one indigo underline, one tab stop, selected/panel relationships, and Left/Right, Home, and End keyboard navigation. The trend and model rows arrive together in one snapshot response, and the headline totals are reduced from those model rows. User spending ranking remains a separately labelled view. Sources: `frontend/src/views/admin/DashboardView.vue:22–39`, `:164–173`, `:244–255`, `:474–500`; `frontend/src/components/charts/ModelDistributionChart.vue:70–108`, `:128–168`, `:374–398`, `:575–590`.
+
+**Report scope and drilldown.** The visible date context uses calendar dates. Dashboard query state retains `start_date`, `end_date`, `metric`, and `granularity`, so browser Back restores the report selection. Usage-record links carry the selected dates; model links add a model filter, and ranking links add a user filter. The usage page applies those query filters on entry and on query changes, clearing a prior model/user filter when absent from the new query. Server operations and cumulative totals sit in their own panels with server snapshot timestamps; the operations panel explicitly states that its aggregation is independent of the selected period. Preserve stale-server signalling and account-subset counts. Sources: `frontend/src/views/admin/DashboardView.vue:42–60`, `:191–241`, `:440–470`; `frontend/src/components/charts/ModelDistributionChart.vue:395–398`; `frontend/src/views/admin/UsageView.vue:320–336`, `:868–890`.
+
+**Charts.** The main usage trend draws one unsmoothed indigo line for multiple observed buckets and one bar for a single bucket. Numeric time spacing preserves the supplied wall-clock bucket labels and unequal gaps; do not invent intervening zero buckets. The zero-based value axis changes units with the metric. Tooltips and a keyboard-reachable aggregate-data disclosure expose the original bucket label and full cost/request/token values. Loading, no activity, and failure are separate states. The secondary token/cache disclosure retains its own series controls, percentage mode, and data table. Shared chart colors follow the document theme. Sources: `frontend/src/components/charts/UsageOverviewChart.vue:3–44`, `:79–108`, `:180–223`, `:230–249`; `frontend/src/components/charts/TokenUsageTrend.vue`; `frontend/src/composables/useChartTheme.ts`.
+
+**Report failures.** A failed refresh of the same dates and granularity keeps the last matching report visible with a refresh-failed alert and retry action. Changing dates or granularity makes the previous report ineligible: show loading placeholders, then an unavailable report and retry if fetching fails, without presenting previous-period values as current. Initial failure has a page-level retry. Account-list, user-analysis, and ranking failures retain their own error states, distinct from successful empty results. A successful selected-period snapshot refresh has its own client receipt time; it does not replace the separately labelled server snapshot time. Sources: `frontend/src/views/admin/DashboardView.vue:12–39`, `:46–48`, `:65–69`, `:235`, `:474–509`, `:520–568`; `frontend/src/components/charts/ModelDistributionChart.vue:193–207`.
 
 **Onboarding.** Popovers use the shared font and semantic neutral surfaces. Footer content wraps, keyboard hints occupy their own line, and mobile navigation buttons have a 44px minimum height. On viewports up to 480px, popovers use 16px side margins and 18px headings with Korean word wrapping. See `frontend/src/styles/onboarding.css`.
 

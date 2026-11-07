@@ -98,9 +98,15 @@
 
     <div v-if="!showChart && activeView === 'model_distribution' && !loading && displayModelStats.length" class="distribution-mobile-models">
       <div v-for="model in displayModelStats" :key="model.model" class="mobile-model-row">
-        <button type="button" class="mobile-model-name" :aria-expanded="expandedKey === `model-${model.model}`" @click="enableBreakdown && toggleBreakdown('model', model.model)">{{ model.model }}<svg v-if="enableBreakdown" class="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7"/></svg></button>
-        <div class="mobile-model-metrics"><span>{{ t('admin.dashboard.requests') }} <b>{{ formatNumber(model.requests) }}</b></span><span>{{ t('admin.dashboard.tokens') }} <b>{{ formatTokens(model.total_tokens) }}</b></span><span>{{ t('usage.cost') }} <b>${{ formatCost(model.actual_cost) }}</b></span></div>
-        <UserBreakdownSubTable v-if="expandedKey === `model-${model.model}`" :items="breakdownItems" :loading="breakdownLoading" :show-account-cost="showAccountCost" />
+        <RouterLink v-if="modelUsageLinks" :to="modelUsageLocation(model.model)" class="mobile-model-name model-usage-link">{{ model.model }}</RouterLink>
+        <button v-else type="button" class="mobile-model-name" :aria-expanded="expandedKey === `model-${model.model}`" @click="enableBreakdown && !modelUsageLinks && toggleBreakdown('model', model.model)">{{ model.model }}<svg v-if="enableBreakdown" class="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7"/></svg></button>
+        <div class="mobile-model-metrics">
+          <span :class="{ 'active-mobile-metric': metric === 'requests' }">{{ t('admin.dashboard.requests') }} <b>{{ formatNumber(model.requests) }}</b></span>
+          <span :class="{ 'active-mobile-metric': metric === 'tokens' }">{{ t('admin.dashboard.tokens') }} <b>{{ formatTokens(model.total_tokens) }}</b></span>
+          <span :class="{ 'active-mobile-metric': metric === 'actual_cost' }">{{ t('usage.cost') }} <b>${{ formatCost(model.actual_cost) }}</b></span>
+        </div>
+        <div class="mobile-model-contribution" aria-hidden="true"><span :style="{ width: metricContribution(model) }" /></div>
+        <UserBreakdownSubTable v-if="!modelUsageLinks && expandedKey === `model-${model.model}`" :items="breakdownItems" :loading="breakdownLoading" :show-account-cost="showAccountCost" />
       </div>
     </div>
 
@@ -119,9 +125,9 @@
           <thead>
             <tr class="text-gray-500 dark:text-gray-400">
               <th class="pb-2 text-left">{{ t('admin.dashboard.model') }}</th>
-              <th class="pb-2 text-right">{{ t('admin.dashboard.requests') }}</th>
-              <th class="pb-2 text-right">{{ t('admin.dashboard.tokens') }}</th>
-              <th class="pb-2 text-right">{{ t(!showChart ? 'usage.cost' : 'admin.dashboard.actual') }}</th>
+              <th scope="col" class="pb-2 text-right" :aria-sort="!showChart && metric === 'requests' ? 'descending' : undefined" :class="{ 'selected-metric-heading': !showChart && metric === 'requests' }">{{ t('admin.dashboard.requests') }}</th>
+              <th scope="col" class="pb-2 text-right" :aria-sort="!showChart && metric === 'tokens' ? 'descending' : undefined" :class="{ 'selected-metric-heading': !showChart && metric === 'tokens' }">{{ t('admin.dashboard.tokens') }}</th>
+              <th scope="col" class="pb-2 text-right" :aria-sort="!showChart && metric === 'actual_cost' ? 'descending' : undefined" :class="{ 'selected-metric-heading': !showChart && metric === 'actual_cost' }">{{ t(!showChart ? 'usage.cost' : 'admin.dashboard.actual') }}</th>
               <th v-if="showAccountCost && showChart" class="pb-2 text-right">{{ t('admin.dashboard.accountCost') }}</th>
               <th v-if="showChart" class="pb-2 text-right">{{ t('admin.dashboard.standard') }}</th>
             </tr>
@@ -130,28 +136,38 @@
             <template v-for="model in displayModelStats" :key="model.model">
               <tr
                 class="border-t border-gray-100 transition-colors dark:border-dark-700"
-                :class="enableBreakdown ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-700/40' : ''"
-                @click="enableBreakdown && toggleBreakdown('model', model.model)"
+                :class="enableBreakdown && !modelUsageLinks ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-700/40' : ''"
+                @click="enableBreakdown && !modelUsageLinks && toggleBreakdown('model', model.model)"
               >
                 <td
                   class="max-w-[260px] truncate py-1.5 font-medium"
                   :class="enableBreakdown ? 'text-gray-900 hover:text-primary-600 dark:text-gray-100 dark:hover:text-primary-300' : 'text-gray-900 dark:text-white'"
                   :title="model.model"
                 >
-                  <button type="button" class="inline-flex items-center gap-1 text-left" :disabled="!enableBreakdown" :aria-expanded="expandedKey === `model-${model.model}`" @click.stop="enableBreakdown && toggleBreakdown('model', model.model)">
+                  <RouterLink v-if="modelUsageLinks" :to="modelUsageLocation(model.model)" class="model-usage-link" @click.stop>{{ model.model }}</RouterLink>
+                  <button v-else type="button" class="inline-flex items-center gap-1 text-left" :disabled="!enableBreakdown" :aria-expanded="expandedKey === `model-${model.model}`" @click.stop="enableBreakdown && toggleBreakdown('model', model.model)">
                     <svg v-if="enableBreakdown && expandedKey === `model-${model.model}`" class="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     <svg v-else-if="enableBreakdown" class="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     {{ model.model }}
                   </button>
                 </td>
-                <td class="py-1.5 text-right text-gray-600 dark:text-gray-400">
-                  {{ formatNumber(model.requests) }}
+                <td class="py-1.5 text-right text-gray-600 dark:text-gray-400" :class="{ 'active-metric-cell': !showChart && metric === 'requests' }">
+                  <span class="metric-cell-value">
+                    <span v-if="!showChart && metric === 'requests'" class="metric-contribution" :style="{ width: metricContribution(model) }" aria-hidden="true" />
+                    <span class="metric-cell-label">{{ formatNumber(model.requests) }}</span>
+                  </span>
                 </td>
-                <td class="py-1.5 text-right text-gray-600 dark:text-gray-400">
-                  {{ formatTokens(model.total_tokens) }}
+                <td class="py-1.5 text-right text-gray-600 dark:text-gray-400" :class="{ 'active-metric-cell': !showChart && metric === 'tokens' }">
+                  <span class="metric-cell-value">
+                    <span v-if="!showChart && metric === 'tokens'" class="metric-contribution" :style="{ width: metricContribution(model) }" aria-hidden="true" />
+                    <span class="metric-cell-label">{{ formatTokens(model.total_tokens) }}</span>
+                  </span>
                 </td>
-                <td class="py-1.5 text-right text-gray-900 dark:text-gray-100">
-                  ${{ formatCost(model.actual_cost) }}
+                <td class="py-1.5 text-right text-gray-900 dark:text-gray-100" :class="{ 'active-metric-cell': !showChart && metric === 'actual_cost' }">
+                  <span class="metric-cell-value">
+                    <span v-if="!showChart && metric === 'actual_cost'" class="metric-contribution" :style="{ width: metricContribution(model) }" aria-hidden="true" />
+                    <span class="metric-cell-label">${{ formatCost(model.actual_cost) }}</span>
+                  </span>
                 </td>
                 <td v-if="showAccountCost && showChart" class="py-1.5 text-right text-orange-500 dark:text-orange-400">
                   ${{ formatCost(model.account_cost) }}
@@ -160,7 +176,7 @@
                   ${{ formatCost(model.cost) }}
                 </td>
               </tr>
-              <tr v-if="expandedKey === `model-${model.model}`">
+              <tr v-if="!modelUsageLinks && expandedKey === `model-${model.model}`">
                 <td :colspan="distributionColspan" class="p-0">
                   <UserBreakdownSubTable
                     :items="breakdownItems"
@@ -219,10 +235,16 @@
                   <span class="shrink-0 text-[11px] font-semibold text-gray-500 dark:text-gray-400">
                     {{ item.isOther ? 'Σ' : `#${index + 1}` }}
                   </span>
-                  <span
-                    class="block max-w-[140px] truncate font-medium text-gray-900 dark:text-white"
+                  <button
+                    v-if="!item.isOther"
+                    type="button"
+                    class="ranking-user-button block max-w-[140px] truncate text-left font-medium text-gray-900 dark:text-white"
                     :title="getRankingRowLabel(item)"
+                    @click.stop="emit('ranking-click', item)"
                   >
+                    {{ getRankingRowLabel(item) }}
+                  </button>
+                  <span v-else class="block max-w-[140px] truncate font-medium text-gray-900 dark:text-white">
                     {{ getRankingRowLabel(item) }}
                   </span>
                 </div>
@@ -253,6 +275,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { RouterLink } from 'vue-router'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { Doughnut } from 'vue-chartjs'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
@@ -265,7 +288,7 @@ ChartJS.register(ArcElement, Tooltip, Legend)
 
 const { t } = useI18n()
 
-type DistributionMetric = 'tokens' | 'actual_cost'
+type DistributionMetric = 'tokens' | 'actual_cost' | 'requests'
 type ModelSource = 'requested' | 'upstream' | 'mapping'
 type RankingDisplayItem = UserSpendingRankingItem & { isOther?: boolean }
 const props = withDefaults(defineProps<{
@@ -285,6 +308,7 @@ const props = withDefaults(defineProps<{
   enableBreakdown?: boolean
   showAccountCost?: boolean
   showChart?: boolean
+  modelUsageLinks?: boolean
   rankingLoading?: boolean
   rankingError?: boolean
   startDate?: string
@@ -306,6 +330,7 @@ const props = withDefaults(defineProps<{
   enableBreakdown: true,
   showAccountCost: true,
   showChart: true,
+  modelUsageLinks: false,
   rankingLoading: false,
   rankingError: false
 })
@@ -360,8 +385,22 @@ const displayModelStats = computed(() => {
       : props.modelStats
   if (!sourceStats?.length) return []
 
-  const metricKey = props.metric === 'actual_cost' ? 'actual_cost' : 'total_tokens'
-  return [...sourceStats].sort((a, b) => toFiniteNumber(b[metricKey]) - toFiniteNumber(a[metricKey]))
+  return [...sourceStats].sort((a, b) => getMetricValue(b) - getMetricValue(a))
+})
+
+const getMetricValue = (model: ModelStat): number => toFiniteNumber(
+  props.metric === 'requests' ? model.requests : props.metric === 'actual_cost' ? model.actual_cost : model.total_tokens
+)
+const maximumMetricValue = computed(() => Math.max(0, ...displayModelStats.value.map(getMetricValue)))
+const metricContribution = (model: ModelStat): string => {
+  const percentage = maximumMetricValue.value > 0
+    ? Math.max(0, getMetricValue(model)) / maximumMetricValue.value * 100
+    : 0
+  return `${Number(percentage.toFixed(4))}%`
+}
+const modelUsageLocation = (model: string) => ({
+  path: '/admin/usage',
+  query: { model, start_date: props.startDate, end_date: props.endDate },
 })
 
 const chartData = computed(() => {
@@ -371,7 +410,7 @@ const chartData = computed(() => {
     labels: displayModelStats.value.map((m) => m.model),
     datasets: [
       {
-        data: displayModelStats.value.map((m) => toFiniteNumber(props.metric === 'actual_cost' ? m.actual_cost : m.total_tokens)),
+        data: displayModelStats.value.map(getMetricValue),
         backgroundColor: chartColors.value.slice(0, displayModelStats.value.length),
         borderWidth: 0
       }
@@ -453,7 +492,7 @@ const doughnutOptions = computed(() => ({
           const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
           const formattedValue = props.metric === 'actual_cost'
             ? `$${formatCost(value)}`
-            : formatTokens(value)
+            : props.metric === 'requests' ? formatNumber(value) : formatTokens(value)
           return `${context.label}: ${formattedValue} (${percentage}%)`
         }
       }
@@ -538,13 +577,26 @@ const formatCost = (value: number | null | undefined): string => {
 .distribution-table th:last-child,.distribution-table td:last-child { padding-right:0; }
 .distribution-compact :deep(h3) { font-size:13px; font-weight:600; }
 .distribution-compact .distribution-table table { min-width:480px; }
-.distribution-compact .distribution-table td:nth-last-child(2) { color:var(--text-secondary); }
-.distribution-compact .distribution-table td:last-child { color:var(--text-muted); }
+.distribution-compact .distribution-table th { font-size:12px; }
+.distribution-compact .distribution-table td { height:40px; font-size:13px; color:var(--text-secondary); }
+.distribution-compact .distribution-table .selected-metric-heading { color:var(--accent-primary); font-weight:600; }
+.distribution-compact .distribution-table .active-metric-cell { color:var(--text-primary); font-weight:550; }
+.metric-cell-value { position:relative; display:block; padding:4px 0; isolation:isolate; }
+.metric-cell-label { position:relative; }
+.metric-contribution { position:absolute; inset-block:0; right:0; border-radius:3px; background:var(--accent-soft); z-index:-1; }
+.model-usage-link { color:var(--text-primary); text-decoration:underline; text-decoration-color:var(--border-default); text-underline-offset:4px; }
+.model-usage-link:hover { color:var(--accent-primary); text-decoration-color:currentColor; }
 .distribution-compact :deep(button) { font-size:11px; line-height:16px; padding:4px 8px; border-radius:4px; }
+.ranking-user-button { border-radius:3px; }
+.ranking-user-button:focus-visible { outline:2px solid var(--accent-primary); outline-offset:3px; }
+.distribution-compact .ranking-user-button { padding:0; font-size:13px; line-height:20px; }
 .distribution-mobile-models { display:none; }
 .mobile-model-row { border-top:1px solid var(--border-default); padding:13px 0; }
-.mobile-model-name { display:flex; align-items:center; justify-content:space-between; width:100%; gap:8px; color:var(--text-primary); text-align:left; overflow-wrap:anywhere; font-size:12px; font-weight:500; }
-.mobile-model-metrics { display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:8px; font-size:11px; color:var(--text-muted); }
+.mobile-model-name { display:flex; align-items:center; justify-content:space-between; width:100%; gap:8px; color:var(--text-primary); text-align:left; overflow-wrap:anywhere; font-size:13px; font-weight:500; }
+.mobile-model-metrics { display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:8px; font-size:12px; color:var(--text-muted); }
+.mobile-model-metrics .active-mobile-metric,.mobile-model-metrics .active-mobile-metric b { color:var(--accent-primary); font-weight:550; }
+.mobile-model-contribution { margin-top:10px; height:3px; border-radius:2px; background:var(--surface-hover); overflow:hidden; }
+.mobile-model-contribution span { display:block; height:100%; border-radius:inherit; background:var(--accent-primary); opacity:.55; }
 .mobile-model-metrics b { margin-left:3px; color:var(--text-secondary); font-weight:500; font-variant-numeric:tabular-nums; }
 @media(max-width:600px) { .distribution-compact .distribution-mobile-models { display:block; } .distribution-compact .distribution-mobile-models + .flex { display:none; } .distribution-table table,.distribution-compact .distribution-table table { min-width:460px; } }
 </style>

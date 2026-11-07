@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-07T02:49:38.956265+00:00",
+  "generatedAt": "2026-11-07T07:12:49.044323+00:00",
   "title": "Design System: Sub2API",
   "extensions": {
     "colorMeta": {
@@ -40,7 +40,7 @@
       },
       "metric": {
         "displayName": "Metric",
-        "purpose": "Tabular overview KPI values."
+        "purpose": "Selected-period totals; the same metric controls the usage trend and model order."
       },
       "body": {
         "displayName": "Body",
@@ -88,6 +88,14 @@
       {
         "name": "desktop-navigation",
         "value": "1024px"
+      },
+      {
+        "name": "dashboard-compact",
+        "value": "1180px"
+      },
+      {
+        "name": "compact-model-rows",
+        "value": "600px"
       }
     ]
   },
@@ -145,6 +153,14 @@
       "description": "Default Home entry action; fixed indigo and white in both themes, with a 44px mobile minimum height. This public specimen shows anonymous sign-in.",
       "html": "<a class=\"ds-home-primary\" href=\"/login\">로그인하고 시작하기<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14m-7-7 7 7-7 7\"/></svg></a>",
       "css": ".ds-home-primary{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:20px;min-height:42px;padding:10px 16px;border:1px solid #5b5bd6;border-radius:6px;background:#5b5bd6;color:#fff;font-family:'Pretendard Variable',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:13px;line-height:1.55;font-weight:500;text-decoration:none;transition:filter .15s;}.ds-home-primary:hover{filter:brightness(1.08);}.ds-home-primary:focus-visible{outline:2px solid var(--accent-primary,#5b5bd6);outline-offset:3px;}@media(max-width:720px){.ds-home-primary{min-height:44px;gap:12px;}}@media(prefers-reduced-motion:reduce){.ds-home-primary{transition:none;}}"
+    },
+    {
+      "name": "Dashboard metric strip · loading",
+      "kind": "custom",
+      "refersTo": "dashboard-metric",
+      "description": "Value-free loading specimen of the shared metric/chart panel. In the application one metric controls trend values and descending model order; data comes from the selected-date snapshot.",
+      "html": "<section class=\"ds-report\" aria-busy=\"true\" aria-label=\"기간별 사용량 불러오는 중\"><div class=\"ds-report-metrics\" role=\"tablist\" aria-label=\"차트 지표\"><button id=\"ds-metric-cost\" class=\"ds-report-metric\" type=\"button\" role=\"tab\" aria-selected=\"true\" aria-controls=\"ds-report-trend\" tabindex=\"0\"><span>차감 비용</span><span class=\"ds-report-skeleton ds-report-value\" aria-hidden=\"true\"></span><small>USD · 기록된 차감액</small></button><button id=\"ds-metric-requests\" class=\"ds-report-metric\" type=\"button\" role=\"tab\" aria-selected=\"false\" aria-controls=\"ds-report-trend\" tabindex=\"-1\"><span>요청 수</span><span class=\"ds-report-skeleton ds-report-value\" aria-hidden=\"true\"></span><small>선택한 기간의 요청</small></button><button id=\"ds-metric-tokens\" class=\"ds-report-metric\" type=\"button\" role=\"tab\" aria-selected=\"false\" aria-controls=\"ds-report-trend\" tabindex=\"-1\"><span>총 토큰</span><span class=\"ds-report-skeleton ds-report-value\" aria-hidden=\"true\"></span><small>입력·출력·캐시 포함</small></button></div><div id=\"ds-report-trend\" class=\"ds-report-loading\" role=\"tabpanel\" aria-labelledby=\"ds-metric-cost\"><div class=\"ds-report-skeleton ds-report-plot\" aria-hidden=\"true\"></div></div></section>",
+      "css": ".ds-report{font-family:\"Pretendard Variable\",-apple-system,sans-serif;color:var(--text-primary,#181c25);background:var(--surface-panel,#fff);border:1px solid var(--border-default,#e1e3e8);border-radius:8px;overflow:hidden;}.ds-report-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-bottom:1px solid var(--border-default,#e1e3e8);}.ds-report-metric{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:9px;min-width:0;padding:20px 24px 18px;border:0;border-right:1px solid var(--border-default,#e1e3e8);background:transparent;text-align:left;font:inherit;cursor:pointer;transition:background .15s;}.ds-report-metric:last-child{border-right:0;}.ds-report-metric:hover{background:var(--surface-hover,#e9ebf0);}.ds-report-metric[aria-selected=true]{background:var(--surface-canvas,#f7f8fa);}.ds-report-metric[aria-selected=true]::after{content:\"\";position:absolute;height:2px;left:24px;right:24px;bottom:0;background:var(--accent-primary,#5b5bd6);}.ds-report-metric:focus-visible{outline:2px solid var(--accent-primary,#5b5bd6);outline-offset:-4px;}.ds-report-metric>span:first-child{color:var(--text-secondary,#515968);font-size:13px;line-height:20px;}.ds-report-metric small{color:var(--text-muted,#68707e);font-size:11px;line-height:18px;white-space:nowrap;}.ds-report-skeleton{display:block;border-radius:4px;background:var(--border-default,#e1e3e8);}.ds-report-value{width:72px;height:36px;}.ds-report-loading{padding:24px 20px;}.ds-report-plot{height:240px;}@media(max-width:640px){.ds-report-metric{padding:16px 12px;gap:6px;}.ds-report-metric>span:first-child{font-size:12px;}.ds-report-metric small{font-size:10px;line-height:16px;white-space:normal;text-wrap:balance;}.ds-report-metric[aria-selected=true]::after{left:12px;right:12px;}.ds-report-loading{padding:16px 12px;}}@media(max-width:600px){.ds-report-plot{height:200px;}}@media(prefers-reduced-motion:reduce){.ds-report-metric{transition:none;}}"
     }
   ],
   "narrative": {

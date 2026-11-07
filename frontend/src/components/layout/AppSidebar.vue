@@ -35,8 +35,11 @@
       <!-- Admin View: Admin menu first, then personal menu -->
       <template v-if="isAdmin">
         <!-- Admin Section -->
-        <div class="sidebar-section">
-          <template v-for="item in adminNavItems" :key="item.path">
+        <div v-for="section in adminNavSections" :key="section.id" class="sidebar-section">
+          <div class="sidebar-section-title" :class="{ 'sidebar-section-title-collapsed': sidebarCollapsed }" :aria-hidden="sidebarCollapsed ? 'true' : 'false'">
+            <span class="sidebar-section-title-text" :class="{ 'sidebar-section-title-text-collapsed': sidebarCollapsed }">{{ section.label }}</span>
+          </div>
+          <template v-for="item in section.items" :key="item.path">
             <!-- Collapsible group (has children) -->
             <template v-if="item.children?.length">
               <button
@@ -868,6 +871,27 @@ const adminNavItems = computed((): NavItem[] => {
     visible.push({ path: `/custom/${cm.id}`, label: cm.label, icon: null, iconSvg: cm.icon_svg })
   }
   return visible
+})
+
+
+// Group existing permission-filtered entries by the operator's task. No route is added or hidden here.
+const adminNavSections = computed(() => {
+  const activity = ['/admin/dashboard', '/admin/usage', '/admin/ops', '/admin/audit-logs']
+  const connections = ['/admin/accounts', '/admin/groups', '/keys', '/admin/channels', '/admin/proxies', '/admin/plugins']
+  const sections = [
+    { id: 'activity', label: t('admin.dashboard.analytics.navigationActivity'), order: activity },
+    { id: 'connections', label: t('admin.dashboard.analytics.navigationConnections'), order: connections },
+    { id: 'administration', label: t('admin.dashboard.analytics.navigationAdministration'), order: [] as string[] }
+  ]
+  const sectionId = (path: string) => activity.includes(path) ? 'activity' : connections.includes(path) ? 'connections' : 'administration'
+  return sections.map(section => ({
+    id: section.id,
+    label: section.label,
+    items: adminNavItems.value.filter(item => sectionId(item.path) === section.id).sort((a, b) => {
+      const rank = (path: string) => section.order.indexOf(path) < 0 ? 99 : section.order.indexOf(path)
+      return rank(a.path) - rank(b.path)
+    })
+  })).filter(section => section.items.length > 0)
 })
 
 function toggleSidebar() {

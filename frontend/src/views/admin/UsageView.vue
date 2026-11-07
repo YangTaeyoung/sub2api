@@ -215,7 +215,7 @@ type ModelDistributionSource = 'requested' | 'upstream' | 'mapping'
 const route = useRoute()
 const usageStats = ref<AdminUsageStatsResponse | null>(null); const usageLogs = ref<AdminUsageLog[]>([]); const loading = ref(false); const exporting = ref(false)
 const trendData = ref<TrendDataPoint[]>([]); const requestedModelStats = ref<ModelStat[]>([]); const upstreamModelStats = ref<ModelStat[]>([]); const mappingModelStats = ref<ModelStat[]>([]); const groupStats = ref<GroupStat[]>([]); const chartsLoading = ref(false); const modelStatsLoading = ref(false); const granularity = ref<'day' | 'hour'>('hour')
-const modelDistributionMetric = ref<DistributionMetric>('tokens')
+const modelDistributionMetric = ref<DistributionMetric | 'requests'>('tokens')
 const modelDistributionSource = ref<ModelDistributionSource>('requested')
 const loadedModelSources = reactive<Record<ModelDistributionSource, boolean>>({
   requested: false,
@@ -321,17 +321,15 @@ const applyRouteQueryFilters = () => {
   const queryStartDate = getSingleQueryValue(route.query.start_date)
   const queryEndDate = getSingleQueryValue(route.query.end_date)
   const queryUserId = getNumericQueryValue(route.query.user_id)
+  const queryModel = typeof route.query.model === 'string' ? route.query.model.trim() || undefined : undefined
 
-  if (queryStartDate) {
-    startDate.value = queryStartDate
-  }
-  if (queryEndDate) {
-    endDate.value = queryEndDate
-  }
+  startDate.value = queryStartDate || defaultRange.start
+  endDate.value = queryEndDate || defaultRange.end
 
   filters.value = {
     ...filters.value,
     user_id: queryUserId,
+    model: queryModel,
     start_date: startDate.value,
     end_date: endDate.value
   }
@@ -340,7 +338,10 @@ const applyRouteQueryFilters = () => {
 
 const loadRouteUserFilterLabel = async () => {
   const requestedUserId = filters.value.user_id
-  if (!requestedUserId) return
+  if (!requestedUserId) {
+    usageFiltersRef.value?.setUserKeyword?.('')
+    return
+  }
   const userSearchRevision = usageFiltersRef.value?.getUserSearchRevision?.()
 
   const routeUserFilterIsCurrent = () => (
@@ -878,6 +879,16 @@ onMounted(() => {
   document.addEventListener('click', handleColumnClickOutside)
 })
 onUnmounted(() => { abortController?.abort(); exportAbortController?.abort(); document.removeEventListener('click', handleColumnClickOutside) })
+
+watch(
+  () => [route.query.model, route.query.user_id, route.query.start_date, route.query.end_date],
+  () => {
+    applyRouteQueryFilters()
+    void loadRouteUserFilterLabel()
+    activeTab.value = 'usage'
+    applyFilters()
+  }
+)
 
 watch(modelDistributionSource, (source) => {
   void loadModelStats(source)

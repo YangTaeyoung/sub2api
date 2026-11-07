@@ -5,14 +5,17 @@ import { createPinia, setActivePinia } from 'pinia'
 import type { DashboardStats } from '@/types'
 import DashboardView from '../DashboardView.vue'
 
-const { getSnapshotV2, getUserUsageTrend, getUserSpendingRanking } = vi.hoisted(() => ({
+const { getSnapshotV2, getUserUsageTrend, getUserSpendingRanking, routeState, replaceRoute } = vi.hoisted(() => ({
   getSnapshotV2: vi.fn(),
   getUserUsageTrend: vi.fn(),
-  getUserSpendingRanking: vi.fn()
+  getUserSpendingRanking: vi.fn(),
+  routeState: { path: '/admin/dashboard', query: {} as Record<string, string> },
+  replaceRoute: vi.fn()
 }))
 
 vi.mock('vue-chartjs', () => ({
-  Line: { name: 'Line', props: ['data', 'options'], template: '<div class="line-chart" />' }
+  Line: { name: 'Line', props: ['data', 'options'], template: '<div class="line-chart" />' },
+  Bar: { name: 'Bar', props: ['data', 'options'], template: '<div class="bar-chart" />' }
 }))
 
 vi.mock('@/api/admin', () => ({
@@ -35,8 +38,10 @@ vi.mock('@/stores/app', () => ({
 vi.mock('vue-router', () => ({
   RouterLink: { props: ['to'], template: '<a><slot /></a>' },
   useRouter: () => ({
-    push: vi.fn()
-  })
+    push: vi.fn(),
+    replace: replaceRoute
+  }),
+  useRoute: () => routeState
 }))
 
 vi.mock('vue-i18n', async () => {
@@ -44,7 +49,8 @@ vi.mock('vue-i18n', async () => {
   return {
     ...actual,
     useI18n: () => ({
-      t: (key: string) => key
+      t: (key: string) => key,
+      locale: { value: 'en' }
     })
   }
 })
@@ -94,6 +100,8 @@ const createDashboardStats = (): DashboardStats => ({
 
 describe('admin DashboardView', () => {
   beforeEach(() => {
+    routeState.query = {}
+    replaceRoute.mockClear()
     setActivePinia(createPinia())
 
     getSnapshotV2.mockReset()
@@ -129,7 +137,7 @@ describe('admin DashboardView', () => {
       global: { stubs: {
         AppLayout: { template: '<div><slot /></div>' }, LoadingSpinner: true,
         Icon: true, DateRangePicker: true, Select: true, ModelDistributionChart: true,
-        TokenUsageTrend: true
+        UsageOverviewChart: true, TokenUsageTrend: true
       } }
     })
     await flushPromises()
@@ -145,7 +153,7 @@ describe('admin DashboardView', () => {
     expect(chart.props('data').datasets[0].data).toEqual([5])
   })
 
-  it('uses last 24 hours as default dashboard range', async () => {
+  it('uses today as a truthful calendar-date dashboard range', async () => {
     mount(DashboardView, {
       global: {
         stubs: {
@@ -155,7 +163,7 @@ describe('admin DashboardView', () => {
           DateRangePicker: true,
           Select: true,
           ModelDistributionChart: true,
-          TokenUsageTrend: true,
+          UsageOverviewChart: true, TokenUsageTrend: true,
           Line: true
         }
       }
@@ -164,11 +172,10 @@ describe('admin DashboardView', () => {
     await flushPromises()
 
     const now = new Date()
-    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000)
 
     expect(getSnapshotV2).toHaveBeenCalledTimes(1)
     expect(getSnapshotV2).toHaveBeenCalledWith(expect.objectContaining({
-      start_date: formatLocalDate(yesterday),
+      start_date: formatLocalDate(now),
       end_date: formatLocalDate(now),
       granularity: 'hour'
     }))
@@ -181,12 +188,92 @@ describe('admin DashboardView', () => {
     })
     const wrapper = mount(DashboardView, { global: { stubs: {
       AppLayout: { template: '<div><slot /></div>' }, Icon: true, PlatformIcon: true,
-      DateRangePicker: true, Select: true, ModelDistributionChart: true, TokenUsageTrend: true
+      DateRangePicker: true, Select: true, ModelDistributionChart: true, UsageOverviewChart: true, TokenUsageTrend: true
     } } })
     await flushPromises()
     const metrics = wrapper.findAll('.overview-metric strong').map(node => node.text())
-    expect(metrics.slice(0, 3)).toEqual(['3', '1.20K', '$0.123'])
+    expect(metrics.slice(0, 3)).toEqual(['$0.123', '3', '1.20K'])
     expect(wrapper.findAll('.overview-metric small')[0].text()).not.toContain('999')
+  })
+
+  const mountOverview = () => mount(DashboardView, { global: { stubs: {
+    AppLayout: { template: '<div><slot /></div>' }, Icon: true, PlatformIcon: true,
+    DateRangePicker: true, Select: true, ModelDistributionChart: true,
+    UsageOverviewChart: true, TokenUsageTrend: true
+  } } })
+  const periodSnapshot = (requests: number) => ({
+    stats: createDashboardStats(), trend: [],
+    models: [{ model: 'example', requests, total_tokens: 1200, input_tokens: 1000, output_tokens: 200, cache_creation_tokens: 0, cache_read_tokens: 0, actual_cost: 0.1234, cost: 0.2 }]
+  })
+
+  it('withholds previous-period totals when a new period fails to load', async () => {
+    getSnapshotV2.mockResolvedValueOnce(periodSnapshot(77))
+    const wrapper = mountOverview()
+    await flushPromises()
+    expect(wrapper.findAll('.overview-metric strong').map(node => node.text())).toContain('77')
+    getSnapshotV2.mockRejectedValueOnce(new Error('offline'))
+    const datePicker = wrapper.findComponent({ name: 'DateRangePicker' })
+    datePicker.vm.$emit('update:startDate', '2025-01-01')
+    datePicker.vm.$emit('update:endDate', '2025-01-02')
+    datePicker.vm.$emit('change', { startDate: '2025-01-01', endDate: '2025-01-02', preset: null })
+    await flushPromises()
+    expect(wrapper.findAll('.overview-metric strong')).toHaveLength(0)
+    expect(wrapper.get('.overview-load-error').text()).toContain('admin.dashboard.analytics.periodFailed')
+    expect(wrapper.findComponent({ name: 'ModelDistributionChart' }).exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('retains confirmed same-period data with an inline refresh failure', async () => {
+    getSnapshotV2.mockResolvedValueOnce(periodSnapshot(55))
+    const wrapper = mountOverview()
+    await flushPromises()
+    getSnapshotV2.mockRejectedValueOnce(new Error('offline'))
+    await wrapper.get('.overview-refresh').trigger('click')
+    await flushPromises()
+    expect(wrapper.findAll('.overview-metric strong').map(node => node.text())).toContain('55')
+    expect(wrapper.get('.overview-load-error').text()).toContain('admin.dashboard.analytics.refreshFailed')
+    wrapper.unmount()
+  })
+
+  it('keeps chart and model ranking tied to the selected metric', async () => {
+    getSnapshotV2.mockResolvedValueOnce(periodSnapshot(7))
+    const wrapper = mountOverview()
+    await flushPromises()
+    await wrapper.get('#metric-requests').trigger('click')
+    expect(wrapper.findComponent({ name: 'UsageOverviewChart' }).props('metric')).toBe('requests')
+    expect(wrapper.findComponent({ name: 'ModelDistributionChart' }).props('metric')).toBe('requests')
+    expect(wrapper.get('#metric-requests').attributes('aria-selected')).toBe('true')
+    wrapper.unmount()
+  })
+
+  it('restores period, metric, and resolution from a report URL', async () => {
+    routeState.query = { start_date: '2026-01-01', end_date: '2026-01-07', metric: 'tokens', granularity: 'day' }
+    const wrapper = mountOverview()
+    await flushPromises()
+    expect(getSnapshotV2).toHaveBeenCalledWith(expect.objectContaining({ start_date: '2026-01-01', end_date: '2026-01-07', granularity: 'day' }))
+    expect(wrapper.get('#metric-tokens').attributes('aria-selected')).toBe('true')
+    wrapper.unmount()
+  })
+
+  it('records metric context in the URL before log drilldown', async () => {
+    const wrapper = mountOverview()
+    await flushPromises()
+    await wrapper.get('#metric-requests').trigger('click')
+    expect(replaceRoute).toHaveBeenCalledWith(expect.objectContaining({ query: expect.objectContaining({ metric: 'requests', start_date: formatLocalDate(new Date()), end_date: formatLocalDate(new Date()) }) }))
+    wrapper.unmount()
+  })
+
+  it('shows an explicit user-analysis failure and allows retry', async () => {
+    getUserUsageTrend.mockRejectedValueOnce(new Error('offline'))
+    const wrapper = mountOverview()
+    await flushPromises()
+    expect(wrapper.get('.overview-user-error').text()).toContain('admin.dashboard.analytics.userAnalysisFailed')
+    getUserUsageTrend.mockResolvedValueOnce({ trend: [] })
+    await wrapper.get('.overview-user-error button').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.overview-user-error').exists()).toBe(false)
+    expect(wrapper.get('.overview-users').text()).toContain('admin.dashboard.noDataAvailable')
+    wrapper.unmount()
   })
 
 })

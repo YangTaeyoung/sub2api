@@ -2,92 +2,83 @@
   <AppLayout>
     <div class="workspace-overview">
       <header class="overview-heading">
-        <div>
-          <h1>{{ t('admin.dashboard.workspaceTitle') }}</h1>
-          <p>{{ t('admin.dashboard.workspaceDescription') }}</p>
-        </div>
+        <div><h1>{{ t('admin.dashboard.workspaceTitle') }}</h1><p>{{ t('admin.dashboard.analytics.scope') }}</p></div>
         <div class="overview-filters">
-          <DateRangePicker v-model:start-date="startDate" v-model:end-date="endDate" @change="onDateRangeChange" />
-          <button type="button" class="btn btn-secondary overview-refresh" :disabled="chartsLoading" :aria-label="t('common.refresh')" @click="loadDashboardStats">
-            <Icon name="refresh" size="sm" :class="{ 'animate-spin': chartsLoading }" />
-          </button>
+          <DateRangePicker v-model:start-date="startDate" v-model:end-date="endDate" :exclude-presets="['last24Hours']" @change="onDateRangeChange" />
+          <button type="button" class="btn btn-secondary overview-refresh" :disabled="chartsLoading" :aria-label="t('common.refresh')" @click="loadDashboardStats"><Icon name="refresh" size="sm" :class="{ 'animate-spin': chartsLoading }" /><span>{{ t('common.refresh') }}</span></button>
         </div>
       </header>
 
-      <div v-if="loading && !stats" class="overview-skeleton" aria-busy="true" :aria-label="t('common.loading')">
-        <div v-for="i in 4" :key="i" class="skeleton h-20" />
-      </div>
+      <div v-if="loading && !stats" class="overview-page-loading" aria-busy="true" :aria-label="t('common.loading')"><div class="skeleton h-20" /><div class="skeleton h-80" /></div>
       <template v-else-if="stats">
-        <section class="overview-metrics" :aria-label="t('admin.dashboard.performance')">
-          <div class="overview-metric"><span>{{ t('admin.dashboard.requests') }}</span><strong>{{ formatNumber(selectedTotals.requests) }}</strong><small :title="`${startDate} – ${endDate}`">{{ t('admin.dashboard.timeRange') }} · {{ startDate.slice(5).replace('-', '.') }}<template v-if="startDate !== endDate"> – {{ endDate.slice(5).replace('-', '.') }}</template></small></div>
-          <div class="overview-metric"><span>{{ t('admin.dashboard.tokens') }}</span><strong>{{ formatTokens(selectedTotals.tokens) }}</strong><small>{{ t('admin.dashboard.input') }} {{ formatTokens(selectedTotals.input) }} · {{ t('admin.dashboard.output') }} {{ formatTokens(selectedTotals.output) }}</small></div>
-          <div class="overview-metric"><span>{{ t('usage.cost') }}</span><strong><span class="metric-currency">$</span>{{ formatCost(selectedTotals.actualCost) }}</strong><small>{{ t('admin.dashboard.standard') }} ${{ formatCost(selectedTotals.standardCost) }}</small></div>
-          <div class="overview-metric"><span>{{ t('admin.dashboard.avgResponse') }}</span><strong>{{ formatDuration(stats.average_duration_ms) }}</strong><small>{{ t('dates.today') }} · {{ formatNumber(stats.rpm) }} RPM <span aria-hidden="true">·</span> {{ formatNumber(stats.tpm) }} TPM</small></div>
-        </section>
-
-        <div class="overview-health">
-          <span><i class="health-dot" :class="{ 'health-dot-warning': stats.normal_accounts < stats.total_accounts }" />{{ t('admin.dashboard.readyAccounts') }} <b>{{ stats.normal_accounts }}/{{ stats.total_accounts }}</b></span>
-          <span>{{ t('admin.dashboard.activeKeys') }} <b>{{ stats.active_api_keys }}</b></span>
-          <span v-if="stats.stats_updated_at" class="overview-updated">{{ t('admin.dashboard.updatedAt', { time: formatUpdatedTime(stats.stats_updated_at) }) }}</span>
+        <div v-if="hasAccountTrouble" class="overview-notice" role="status"><Icon name="exclamationTriangle" size="sm" /><span>{{ t('admin.dashboard.analytics.accountNotice') }}</span><RouterLink to="/admin/accounts">{{ t('admin.dashboard.analytics.reviewAccounts') }}<Icon name="arrowRight" size="sm" /></RouterLink></div>
+        <div class="overview-context">
+          <div><span>{{ t('admin.dashboard.analytics.period') }}</span><b>{{ periodLabel }}</b></div>
+          <RouterLink :to="usageRoute" class="overview-text-action">{{ t('admin.dashboard.analytics.viewLogs') }}<Icon name="arrowRight" size="sm" /></RouterLink>
         </div>
 
         <div class="overview-grid">
           <div class="overview-primary">
-            <ModelDistributionChart
-              :model-stats="modelStats" :show-chart="false" :enable-ranking-view="true"
-              :ranking-items="rankingItems" :ranking-total-actual-cost="rankingTotalActualCost"
-              :ranking-total-requests="rankingTotalRequests" :ranking-total-tokens="rankingTotalTokens"
-              :loading="chartsLoading" :ranking-loading="rankingLoading" :ranking-error="rankingError"
-              :start-date="startDate" :end-date="endDate" @ranking-click="goToUserUsage"
-            />
-            <TokenUsageTrend :trend-data="trendData" :loading="chartsLoading">
-              <template #controls>
-                <div class="overview-granularity"><Select v-model="granularity" :options="granularityOptions" @change="loadChartData" /></div>
-              </template>
-            </TokenUsageTrend>
+            <section class="overview-analytics card" :aria-busy="chartsLoading" :aria-label="t('admin.dashboard.analytics.usageTitle')">
+              <div class="overview-metrics" role="tablist" :aria-label="t('admin.dashboard.analytics.metricLabel')">
+                <button v-for="metric in metricCards" :id="`metric-${metric.key}`" :key="metric.key" type="button" class="overview-metric" :class="{ selected: selectedMetric === metric.key }" role="tab" :aria-selected="selectedMetric === metric.key" aria-controls="overview-trend" :tabindex="selectedMetric === metric.key ? 0 : -1" @click="selectUsageMetric(metric.key)" @keydown="onMetricKeydown">
+                  <span>{{ metric.label }}<Icon name="chart" size="xs" /></span>
+                  <strong v-if="hasCurrentSnapshot">{{ metric.value }}</strong><span v-else class="skeleton metric-value-loading" aria-hidden="true" />
+                  <small>{{ metric.caption }}</small>
+                </button>
+              </div>
+              <div v-if="snapshotError" class="overview-load-error" role="alert"><Icon name="exclamationCircle" size="sm" /><span>{{ hasCurrentSnapshot ? t('admin.dashboard.analytics.refreshFailed') : t('admin.dashboard.analytics.periodFailed') }}</span><button type="button" @click="loadDashboardStats">{{ t('common.tryAgain') }}</button></div>
+              <div class="overview-chart-heading"><div><h2>{{ t('admin.dashboard.analytics.trend') }}</h2><span v-if="lastUsageUpdated && hasCurrentSnapshot">{{ t('admin.dashboard.updatedAt', { time: formatUpdatedTime(lastUsageUpdated) }) }}</span></div><div class="overview-granularity"><Select v-model="granularity" :options="granularityOptions" :aria-label="t('admin.dashboard.granularity')" @change="onGranularityChange" /></div></div>
+              <div id="overview-trend" role="tabpanel" :aria-labelledby="`metric-${selectedMetric}`" class="overview-chart-body">
+                <UsageOverviewChart v-if="hasCurrentSnapshot || chartsLoading" :trend-data="hasCurrentSnapshot ? trendData : []" :metric="selectedMetric" :loading="chartsLoading && !hasCurrentSnapshot" />
+                <div v-else class="overview-report-unavailable"><Icon name="chart" size="lg" /><p>{{ t('admin.dashboard.analytics.periodFailed') }}</p><small>{{ t('admin.dashboard.analytics.periodRetryHint') }}</small></div>
+              </div>
+              <div class="overview-chart-footer"><span>{{ t('admin.dashboard.analytics.costNote') }}</span><RouterLink :to="usageRoute">{{ t('admin.dashboard.analytics.inspectUsage') }}<Icon name="chevronRight" size="xs" /></RouterLink></div>
+            </section>
+
+            <ModelDistributionChart v-if="hasCurrentSnapshot || chartsLoading" :model-stats="hasCurrentSnapshot ? modelStats : []" :metric="selectedMetric" :show-chart="false" :enable-ranking-view="true" :enable-breakdown="false" :model-usage-links="true" :ranking-items="rankingItems" :ranking-total-actual-cost="rankingTotalActualCost" :ranking-total-requests="rankingTotalRequests" :ranking-total-tokens="rankingTotalTokens" :loading="chartsLoading && !hasCurrentSnapshot" :ranking-loading="rankingLoading" :ranking-error="rankingError" :start-date="startDate" :end-date="endDate" @ranking-click="goToUserUsage" />
           </div>
-          <aside class="overview-aside">
-            <section class="card overview-accounts">
-              <div class="overview-panel-heading"><h2>{{ t('admin.dashboard.connectedAccounts') }}</h2><RouterLink to="/admin/accounts" :aria-label="t('admin.dashboard.manageAccounts')"><Icon name="externalLink" size="sm" /></RouterLink></div>
-              <div v-if="accountsLoading" class="space-y-3 p-4" aria-busy="true"><div v-for="i in 2" :key="i" class="skeleton h-10" /></div>
-              <div v-else-if="accountsError" class="overview-account-empty"><p>{{ t('admin.dashboard.accountsFailed') }}</p><button type="button" class="btn btn-secondary btn-sm" @click="loadAccounts">{{ t('common.tryAgain') }}</button></div>
-              <div v-else-if="!accounts.length" class="overview-account-empty"><p>{{ t('admin.dashboard.noAccounts') }}</p><small>{{ t('admin.dashboard.noAccountsHint') }}</small><RouterLink class="btn btn-secondary btn-sm" to="/admin/accounts">{{ t('admin.dashboard.manageAccounts') }}</RouterLink></div>
-              <RouterLink v-for="account in accounts" :key="account.id" :to="{ path: '/admin/accounts', query: { search: account.name } }" class="overview-account-row">
-                <span class="overview-provider-mark"><PlatformIcon :platform="account.platform" class="h-5 w-5" /></span>
-                <span class="overview-account-name"><b :title="account.name">{{ account.name }}</b><small>{{ providerLabel(account.platform) }}</small></span>
-                <span class="overview-account-status" :class="{ 'needs-attention': account.status !== 'active' || !account.schedulable }"><i class="health-dot" /><span>{{ account.status === 'active' && account.schedulable ? t('common.active') : t('admin.dashboard.accountNeedsAttention') }}</span></span>
-              </RouterLink>
-              <RouterLink to="/admin/accounts" class="overview-panel-link">{{ t('admin.dashboard.manageAccounts') }}<Icon name="chevronRight" size="sm" /></RouterLink>
-            </section>
-            <section class="card overview-totals">
-              <div class="overview-panel-heading"><h2>{{ t('admin.dashboard.totals') }}</h2></div>
-              <p v-if="stats.stats_updated_at" class="overview-totals-updated">{{ t('admin.dashboard.updatedAt', { time: formatUpdatedTime(stats.stats_updated_at) }) }}</p>
-              <dl><div><dt>{{ t('admin.dashboard.totalRequests') }}</dt><dd>{{ formatNumber(stats.total_requests) }}</dd></div><div><dt>{{ t('admin.dashboard.totalTokens') }}</dt><dd>{{ formatTokens(stats.total_tokens) }}</dd></div><div><dt>{{ t('admin.dashboard.totalCost') }}</dt><dd>${{ formatCost(stats.total_actual_cost) }}</dd></div><div><dt>{{ t('admin.dashboard.activeUsers') }}</dt><dd>{{ formatNumber(stats.hourly_active_users ?? stats.active_users) }}</dd></div></dl>
-            </section>
-            <div v-if="canUseBatchImage" class="overview-resource-links"><RouterLink to="/batch-images"><Icon name="document" size="sm" />{{ t('nav.batchImage') }}<Icon name="chevronRight" size="sm" /></RouterLink></div>
+
+          <aside class="overview-aside" :class="{ 'overview-aside-attention': hasAccountTrouble }">
+            <details class="overview-account-panel card" :open="!compactViewport || hasAccountTrouble">
+              <summary><div><h2>{{ t('admin.dashboard.analytics.accountHealth') }}</h2><span>{{ t('admin.dashboard.analytics.accountsCount', { count: accountTotal ?? stats.total_accounts }) }}</span></div><Icon name="chevronDown" size="sm" /></summary>
+              <div class="overview-account-content">
+                <div v-if="accountsLoading" class="overview-account-loading" aria-busy="true"><div v-for="i in 2" :key="i" class="skeleton h-10" /></div>
+                <div v-else-if="accountsError" class="overview-account-empty"><p>{{ t('admin.dashboard.accountsFailed') }}</p><button type="button" class="btn btn-secondary btn-sm" @click="loadAccounts">{{ t('common.tryAgain') }}</button></div>
+                <div v-else-if="!accounts.length" class="overview-account-empty"><p>{{ t('admin.dashboard.noAccounts') }}</p><small>{{ t('admin.dashboard.noAccountsHint') }}</small></div>
+                <RouterLink v-for="account in prioritizedAccounts" :key="account.id" :to="{ path: '/admin/accounts', query: { search: account.name } }" class="overview-account-row"><PlatformIcon :platform="account.platform" class="overview-provider-mark" /><span class="overview-account-name"><b :title="account.name">{{ account.name }}</b><small>{{ providerLabel(account.platform) }}</small></span><span class="overview-account-status" :class="{ 'needs-attention': account.status !== 'active' || !account.schedulable }"><i class="health-dot" />{{ account.status === 'active' && account.schedulable ? t('common.active') : t('admin.dashboard.accountNeedsAttention') }}</span></RouterLink>
+                <p v-if="(accountTotal ?? stats.total_accounts) > accounts.length && !accountsLoading && !accountsError" class="overview-subset-note">{{ t('admin.dashboard.analytics.accountSubset', { count: accounts.length, total: accountTotal ?? stats.total_accounts }) }}</p>
+                <RouterLink to="/admin/accounts" class="overview-panel-link">{{ t('admin.dashboard.manageAccounts') }}<Icon name="arrowRight" size="sm" /></RouterLink>
+              </div>
+            </details>
+
+            <details class="overview-operations card" :open="!compactViewport">
+              <summary><h2>{{ t('admin.dashboard.analytics.operations') }}</h2><Icon name="chevronDown" size="sm" /></summary>
+              <div class="overview-operations-content"><p class="overview-operations-scope">{{ t('admin.dashboard.analytics.serverScope') }}</p><dl><div><dt>{{ t('admin.dashboard.avgResponse') }}</dt><dd>{{ formatDuration(stats.average_duration_ms) }}</dd></div><div><dt>{{ t('admin.dashboard.analytics.recentRpm') }}</dt><dd>{{ formatNumber(stats.rpm) }}<small> RPM</small></dd></div><div><dt>{{ t('admin.dashboard.analytics.recentTpm') }}</dt><dd>{{ formatNumber(stats.tpm) }}<small> TPM</small></dd></div></dl><div class="overview-key-stat"><span>{{ t('admin.dashboard.analytics.activeKeys') }}</span><b>{{ stats.active_api_keys }}</b></div><p v-if="stats.stats_updated_at" class="overview-snapshot-time">{{ t('admin.dashboard.analytics.serverSnapshot') }} · {{ formatUpdatedTime(stats.stats_updated_at) }}<span v-if="stats.stats_stale"> · {{ t('admin.dashboard.analytics.stale') }}</span></p></div>
+            </details>
+
+            <details class="overview-totals card"><summary><h2>{{ t('admin.dashboard.totals') }}</h2><Icon name="chevronDown" size="sm" /></summary><div class="overview-operations-content"><dl><div><dt>{{ t('admin.dashboard.totalRequests') }}</dt><dd>{{ formatNumber(stats.total_requests) }}</dd></div><div><dt>{{ t('admin.dashboard.totalTokens') }}</dt><dd>{{ formatTokens(stats.total_tokens) }}</dd></div><div><dt>{{ t('admin.dashboard.totalCost') }}</dt><dd>${{ formatCost(stats.total_actual_cost) }}</dd></div></dl><p v-if="stats.stats_updated_at" class="overview-snapshot-time">{{ t('admin.dashboard.analytics.serverSnapshot') }} · {{ formatUpdatedTime(stats.stats_updated_at) }}</p></div></details>
+            <RouterLink v-if="canUseBatchImage" class="overview-panel-link overview-batch-link" to="/batch-images">{{ t('nav.batchImage') }}<Icon name="arrowRight" size="sm" /></RouterLink>
           </aside>
         </div>
 
-        <details class="card overview-users">
-          <summary>{{ t('admin.dashboard.userUsageTrend') }}<Icon name="chevronDown" size="sm" /></summary>
-          <div class="overview-users-content">
-            <div class="mb-4 flex justify-end gap-1" role="group" :aria-label="t('admin.dashboard.recentUsage')"><button v-for="metric in (['tokens', 'actual_cost'] as const)" :key="metric" type="button" class="overview-segment" :class="{ selected: userTrendMetric === metric }" :aria-pressed="userTrendMetric === metric" @click="setUserTrendMetric(metric)">{{ t(metric === 'tokens' ? 'admin.dashboard.tokens' : 'admin.dashboard.actualSpending') }}</button></div>
-            <div class="h-56"><div v-if="userTrendLoading" class="skeleton h-full" /><Line v-else-if="userTrendChartData" :data="userTrendChartData" :options="lineOptions" role="img" :aria-label="t('admin.dashboard.userUsageTrend')" /><div v-else class="overview-chart-empty">{{ t('admin.dashboard.noDataAvailable') }}</div></div>
-          </div>
-        </details>
+        <details v-if="hasCurrentSnapshot" class="card overview-token-details"><summary><div><h2>{{ t('admin.dashboard.analytics.tokenAnalysis') }}</h2><span>{{ t('admin.dashboard.analytics.tokenAnalysisHint') }}</span></div><Icon name="chevronDown" size="sm" /></summary><TokenUsageTrend :trend-data="trendData" /></details>
+
+        <details class="card overview-users"><summary><div><h2>{{ t('admin.dashboard.analytics.userAnalysis') }}</h2><span>{{ t('admin.dashboard.analytics.userAnalysisHint') }}</span></div><Icon name="chevronDown" size="sm" /></summary><div class="overview-users-content"><div class="overview-user-controls" role="group" :aria-label="t('admin.dashboard.recentUsage')"><button v-for="metric in (['tokens', 'actual_cost'] as const)" :key="metric" type="button" class="overview-segment" :class="{ selected: userTrendMetric === metric }" :aria-pressed="userTrendMetric === metric" @click="setUserTrendMetric(metric)">{{ t(metric === 'tokens' ? 'admin.dashboard.tokens' : 'admin.dashboard.actualSpending') }}</button></div><div class="h-56"><div v-if="userTrendLoading" class="skeleton h-full" /><div v-else-if="userTrendError" class="overview-user-error" role="alert"><p>{{ t('admin.dashboard.analytics.userAnalysisFailed') }}</p><button type="button" class="btn btn-secondary btn-sm" @click="loadUsersTrend">{{ t('common.tryAgain') }}</button></div><Line v-else-if="userTrendChartData" :data="userTrendChartData" :options="lineOptions" role="img" :aria-label="t('admin.dashboard.userUsageTrend')" /><div v-else class="overview-chart-empty">{{ t('admin.dashboard.noDataAvailable') }}</div></div></div></details>
       </template>
-      <div v-else class="overview-account-empty"><p>{{ t('admin.dashboard.failedToLoad') }}</p><button type="button" class="btn btn-secondary" @click="loadDashboardStats">{{ t('common.tryAgain') }}</button></div>
+      <div v-else class="overview-page-error" role="alert"><Icon name="exclamationCircle" size="lg" /><h2>{{ t('admin.dashboard.failedToLoad') }}</h2><p>{{ t('admin.dashboard.analytics.periodRetryHint') }}</p><button type="button" class="btn btn-secondary" @click="loadDashboardStats">{{ t('common.tryAgain') }}</button></div>
     </div>
   </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useMediaQuery } from '@vueuse/core'
+import { getIntlLocale } from '@/i18n'
 import { useI18n } from 'vue-i18n'
-import { useRouter, RouterLink } from 'vue-router'
-import { useAppStore } from '@/stores/app'
+import { useRouter, useRoute, RouterLink } from 'vue-router'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 import { adminAPI } from '@/api/admin'
 import type {
   DashboardStats,
@@ -104,6 +95,7 @@ import Icon from '@/components/icons/Icon.vue'
 import DateRangePicker from '@/components/common/DateRangePicker.vue'
 import Select from '@/components/common/Select.vue'
 import ModelDistributionChart from '@/components/charts/ModelDistributionChart.vue'
+import UsageOverviewChart from '@/components/charts/UsageOverviewChart.vue'
 import TokenUsageTrend from '@/components/charts/TokenUsageTrend.vue'
 import { useBatchImageAccess } from '@/composables/useBatchImageAccess'
 
@@ -130,11 +122,12 @@ ChartJS.register(
   Filler
 )
 
-const appStore = useAppStore()
 const router = useRouter()
+const route = useRoute()
 const { canUseBatchImage, refreshBatchImageAccess } = useBatchImageAccess()
 const stats = ref<DashboardStats | null>(null)
 const accounts = ref<AccountListItem[]>([])
+const accountTotal = ref<number | null>(null)
 const accountsLoading = ref(false)
 const accountsError = ref(false)
 const loadAccounts = async () => {
@@ -143,6 +136,7 @@ const loadAccounts = async () => {
   try {
     const response = await adminAPI.accounts.list(1, 5, { lite: 'true' })
     accounts.value = response.items
+    accountTotal.value = response.total ?? response.items.length
   } catch {
     accountsError.value = true
   } finally {
@@ -152,9 +146,15 @@ const loadAccounts = async () => {
 const providerLabel = (platform: string): string => ({ openai: 'OpenAI', anthropic: 'Anthropic', gemini: 'Google Gemini', antigravity: 'Antigravity', grok: 'xAI' }[platform] || platform)
 const formatUpdatedTime = (value: string): string => new Date(value).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
 
+const compactViewport = useMediaQuery('(max-width: 1180px)')
+const selectedMetric = ref<'actual_cost' | 'requests' | 'tokens'>('actual_cost')
+const loadedRange = ref<{ start: string; end: string; granularity: string } | null>(null)
+const lastUsageUpdated = ref('')
+const snapshotError = ref(false)
 const loading = ref(false)
 const chartsLoading = ref(false)
 const userTrendLoading = ref(false)
+const userTrendError = ref(false)
 const rankingLoading = ref(false)
 const rankingError = ref(false)
 
@@ -188,20 +188,72 @@ const formatLocalDate = (date: Date): string => {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
-const getLast24HoursRangeDates = (): { start: string; end: string } => {
-  const end = new Date()
-  const start = new Date(end.getTime() - 24 * 60 * 60 * 1000)
-  return {
-    start: formatLocalDate(start),
-    end: formatLocalDate(end)
+type OverviewMetric = 'actual_cost' | 'requests' | 'tokens'
+function parseOverviewQuery() {
+  const today = formatLocalDate(new Date())
+  const validDate = (value: unknown): string | undefined => {
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined
+    const date = new Date(value + 'T00:00:00')
+    return Number.isFinite(date.getTime()) && formatLocalDate(date) === value ? value : undefined
   }
+  const candidateStart = validDate(route.query.start_date) || today
+  const candidateEnd = validDate(route.query.end_date) || today
+  const validRange = candidateStart <= candidateEnd
+  const start = validRange ? candidateStart : today
+  const end = validRange ? candidateEnd : today
+  const metric: OverviewMetric = route.query.metric === 'requests' || route.query.metric === 'tokens' ? route.query.metric : 'actual_cost'
+  const granularity: 'day' | 'hour' = route.query.granularity === 'day' || route.query.granularity === 'hour'
+    ? route.query.granularity : (new Date(end).getTime() - new Date(start).getTime() > 86400000 ? 'day' : 'hour')
+  return { start, end, metric, granularity }
 }
-
-// Date range
-const granularity = ref<'day' | 'hour'>('hour')
-const defaultRange = getLast24HoursRangeDates()
-const startDate = ref(defaultRange.start)
-const endDate = ref(defaultRange.end)
+// Calendar-date reports are reflected in the URL so log drilldown/back keeps context.
+const initialReport = parseOverviewQuery()
+const granularity = ref<'day' | 'hour'>(initialReport.granularity)
+const startDate = ref(initialReport.start)
+const endDate = ref(initialReport.end)
+selectedMetric.value = initialReport.metric
+const syncOverviewQuery = () => {
+  void router.replace({ path: route.path, query: { ...route.query, start_date: startDate.value, end_date: endDate.value, metric: selectedMetric.value, granularity: granularity.value } })
+}
+function selectUsageMetric(metric: OverviewMetric) {
+  selectedMetric.value = metric
+  syncOverviewQuery()
+}
+function onGranularityChange() {
+  syncOverviewQuery()
+  void loadChartData()
+}
+watch(() => [route.query.start_date, route.query.end_date, route.query.metric, route.query.granularity], () => {
+  const next = parseOverviewQuery()
+  selectedMetric.value = next.metric
+  if (startDate.value === next.start && endDate.value === next.end && granularity.value === next.granularity) return
+  startDate.value = next.start
+  endDate.value = next.end
+  granularity.value = next.granularity
+  void loadChartData()
+})
+const hasCurrentSnapshot = computed(() => loadedRange.value?.start === startDate.value && loadedRange.value?.end === endDate.value && loadedRange.value?.granularity === granularity.value)
+const periodLabel = computed(() => {
+  const formatter = new Intl.DateTimeFormat(getIntlLocale(locale.value), { year: 'numeric', month: 'short', day: 'numeric' })
+  const start = formatter.format(new Date(startDate.value + 'T00:00:00'))
+  return startDate.value === endDate.value ? start : `${start} – ${formatter.format(new Date(endDate.value + 'T00:00:00'))}`
+})
+const usageRoute = computed(() => ({ path: '/admin/usage', query: { start_date: startDate.value, end_date: endDate.value } }))
+const prioritizedAccounts = computed(() => [...accounts.value].sort((a, b) => Number(b.status !== 'active' || !b.schedulable) - Number(a.status !== 'active' || !a.schedulable)))
+const hasAccountTrouble = computed(() => Boolean(stats.value && (stats.value.error_accounts > 0 || stats.value.ratelimit_accounts > 0 || stats.value.overload_accounts > 0)) || accounts.value.some(account => account.status !== 'active' || !account.schedulable))
+const metricCards = computed(() => [
+  { key: 'actual_cost' as const, label: t('admin.dashboard.analytics.cost'), value: `$${formatCost(selectedTotals.value.actualCost)}`, caption: t('admin.dashboard.analytics.usdCost') },
+  { key: 'requests' as const, label: t('admin.dashboard.analytics.requests'), value: formatNumber(selectedTotals.value.requests), caption: t('admin.dashboard.analytics.requestCaption') },
+  { key: 'tokens' as const, label: t('admin.dashboard.analytics.tokens'), value: formatTokens(selectedTotals.value.tokens), caption: t('admin.dashboard.analytics.tokenCaption') }
+])
+function onMetricKeydown(event: KeyboardEvent) {
+  if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
+  event.preventDefault()
+  const index = metricCards.value.findIndex(metric => metric.key === selectedMetric.value)
+  const next = event.key === 'Home' ? 0 : event.key === 'End' ? 2 : (index + (event.key === 'ArrowLeft' ? -1 : 1) + 3) % 3
+  selectUsageMetric(metricCards.value[next]!.key)
+  ;(event.currentTarget as HTMLElement).parentElement?.querySelectorAll<HTMLButtonElement>('button')[next]?.focus()
+}
 
 // Granularity options for Select component
 const granularityOptions = computed(() => [
@@ -414,6 +466,7 @@ const onDateRangeChange = (range: {
     granularity.value = 'day'
   }
 
+  syncOverviewQuery()
   loadChartData()
 }
 
@@ -424,6 +477,8 @@ const loadDashboardSnapshot = async (includeStats: boolean) => {
     loading.value = true
   }
   chartsLoading.value = true
+  snapshotError.value = false
+  const requestedRange = { start: startDate.value, end: endDate.value, granularity: granularity.value }
   try {
     const response = await adminAPI.dashboard.getSnapshotV2({
       start_date: startDate.value,
@@ -441,9 +496,11 @@ const loadDashboardSnapshot = async (includeStats: boolean) => {
     }
     trendData.value = response.trend || []
     modelStats.value = response.models || []
+    loadedRange.value = requestedRange
+    lastUsageUpdated.value = new Date().toISOString()
   } catch (error) {
     if (currentSeq !== chartLoadSeq) return
-    appStore.showError(t('admin.dashboard.failedToLoad'))
+    snapshotError.value = true
     console.error('Error loading dashboard snapshot:', error)
   } finally {
     if (currentSeq === chartLoadSeq) {
@@ -463,6 +520,7 @@ const setUserTrendMetric = (metric: 'tokens' | 'actual_cost') => {
 const loadUsersTrend = async () => {
   const currentSeq = ++usersTrendLoadSeq
   userTrendLoading.value = true
+  userTrendError.value = false
   try {
     const response = await adminAPI.dashboard.getUserUsageTrend({
       start_date: startDate.value,
@@ -476,6 +534,7 @@ const loadUsersTrend = async () => {
   } catch (error) {
     if (currentSeq !== usersTrendLoadSeq) return
     console.error('Error loading users trend:', error)
+    userTrendError.value = true
     userTrend.value = []
   } finally {
     if (currentSeq === usersTrendLoadSeq) {
@@ -525,7 +584,7 @@ const loadDashboardStats = async () => {
 
 const loadChartData = async () => {
   await Promise.all([
-    loadDashboardSnapshot(false),
+    loadDashboardSnapshot(true),
     loadUsersTrend(),
     loadUserSpendingRanking()
   ])
@@ -538,63 +597,100 @@ onMounted(() => {
 </script>
 
 <style scoped>
-
-.workspace-overview { max-width: 1440px; margin: 0 auto; color: var(--text-primary); }
-.overview-heading { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:24px; }
-.overview-heading h1 { font-size:24px; line-height:32px; letter-spacing:-.025em; font-weight:600; }
-.overview-heading p { margin-top:5px; font-size:13px; line-height:20px; color:var(--text-secondary); }
-.overview-filters { display:flex; gap:8px; align-items:center; flex-shrink:0; }
-.overview-refresh { width:32px; padding:0; }
-.overview-skeleton { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
-.overview-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); padding:20px 0; border-top:1px solid var(--border-default); border-bottom:1px solid var(--border-default); }
-.overview-metric { display:flex; flex-direction:column; gap:7px; min-width:0; padding:0 24px; }
-.overview-metric:first-child { padding-left:0; }
-.overview-metric > span { font-size:12px; line-height:18px; color:var(--text-secondary); }
-.overview-metric strong { font-size:28px; line-height:34px; font-weight:550; font-variant-numeric:tabular-nums; letter-spacing:-.025em; }
-.overview-metric small { font-size:11px; line-height:17px; color:var(--text-muted); white-space:nowrap; }
-.metric-currency { color:var(--text-primary); font-weight:400; margin-right:2px; }
-.overview-health { display:flex; align-items:center; flex-wrap:wrap; gap:18px; padding:13px 0 22px; font-size:11px; color:var(--text-secondary); }
-.overview-health > span { display:inline-flex; align-items:center; gap:6px; }
-.overview-health b { font-weight:500; color:var(--text-primary); font-variant-numeric:tabular-nums; }
-.health-dot { display:inline-block; width:6px; height:6px; flex-shrink:0; border-radius:50%; background:#559f87; }
-.health-dot-warning,.needs-attention .health-dot { background:#bd9147; }
-.overview-health .overview-updated { margin-left:auto; color:var(--text-muted); }
-.overview-grid { display:grid; grid-template-columns:minmax(0,1fr) 296px; align-items:start; gap:20px; }
-.overview-primary,.overview-aside { display:flex; flex-direction:column; gap:20px; min-width:0; }
-.overview-panel-heading { display:flex; align-items:center; justify-content:space-between; min-height:52px; padding:0 16px; }
-.overview-panel-heading h2 { font-size:13px; font-weight:600; }
-.overview-panel-heading a { display:grid; place-items:center; width:28px; height:28px; color:var(--text-muted); border-radius:5px; }
-.overview-panel-heading a:hover { color:var(--text-primary); background:var(--surface-raised); }
-.overview-account-row { display:flex; align-items:center; gap:10px; padding:12px 16px; border-top:1px solid var(--border-default); transition:background .15s ease; }
-.overview-account-row:hover { background:var(--surface-raised); }
-.overview-provider-mark { display:grid; place-items:center; width:26px; height:30px; flex-shrink:0; color:var(--text-secondary); }
-.overview-account-name { display:flex; flex:1; min-width:0; flex-direction:column; gap:3px; }
-.overview-account-name b { font-size:12px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.overview-account-name small { font-size:11px; color:var(--text-muted); }
-.overview-account-status { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--text-secondary); flex-shrink:0; }
-.overview-panel-link { display:flex; align-items:center; justify-content:space-between; padding:11px 16px; font-size:11px; color:var(--text-secondary); border-top:1px solid var(--border-default); }
+.workspace-overview { max-width:1440px; margin:0 auto; color:var(--text-primary); font-size:13px; }
+.overview-heading { display:flex; align-items:center; justify-content:space-between; gap:24px; margin-bottom:28px; }
+.overview-heading h1 { font-size:24px; line-height:32px; font-weight:600; letter-spacing:-.02em; }
+.overview-heading p { margin-top:5px; color:var(--text-muted); font-size:13px; line-height:20px; }
+.overview-filters { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.overview-refresh { gap:7px; min-height:32px; padding-inline:10px; font-size:12px; }
+.overview-context { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:14px; font-size:12px; }
+.overview-context > div { display:flex; gap:12px; align-items:center; color:var(--text-muted); }
+.overview-context b { color:var(--text-secondary); font-weight:400; font-variant-numeric:tabular-nums; }
+.overview-text-action { display:inline-flex; align-items:center; gap:7px; color:var(--text-secondary); font-size:12px; }
+.overview-text-action:hover { color:var(--accent-primary); }
+.overview-grid { display:grid; grid-template-columns:minmax(0,1fr) 296px; align-items:start; gap:24px; }
+.overview-primary,.overview-aside { display:flex; flex-direction:column; gap:24px; min-width:0; }
+.overview-analytics { overflow:hidden; }
+.overview-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); border-bottom:1px solid var(--border-default); }
+.overview-metric { position:relative; display:flex; flex-direction:column; align-items:flex-start; gap:9px; min-width:0; padding:20px 24px 18px; text-align:left; transition:background .15s; border-right:1px solid var(--border-default); }
+.overview-metric:last-child { border-right:0; }
+.overview-metric:hover { background:var(--surface-hover); }
+.overview-metric.selected { background:var(--surface-canvas); }
+.overview-metric.selected::after { content:''; position:absolute; height:2px; left:24px; right:24px; bottom:0; background:var(--accent-primary); }
+.overview-metric > span:first-child { display:flex; width:100%; justify-content:space-between; align-items:center; gap:8px; color:var(--text-secondary); font-size:13px; line-height:20px; }
+.overview-metric > span > svg { opacity:0; color:var(--accent-primary); }
+.overview-metric.selected > span > svg { opacity:1; }
+.overview-metric strong { font-size:30px; line-height:36px; font-weight:550; letter-spacing:-.025em; font-variant-numeric:tabular-nums; }
+.overview-metric small { color:var(--text-muted); font-size:11px; line-height:18px; white-space:nowrap; }
+.metric-value-loading { width:72px; height:36px; }
+.overview-chart-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:20px 24px 8px; }
+.overview-chart-heading > div:first-child { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+.overview-chart-heading h2 { font-size:13px; font-weight:500; }
+.overview-chart-heading span { font-size:11px; color:var(--text-muted); }
+.overview-granularity { width:82px; }
+.overview-chart-body { padding:4px 20px 0; min-height:265px; }
+.overview-chart-footer { display:flex; justify-content:space-between; gap:16px; align-items:center; border-top:1px solid var(--border-default); padding:12px 24px; margin-top:10px; color:var(--text-muted); font-size:11px; line-height:18px; }
+.overview-chart-footer a { display:flex; gap:4px; align-items:center; color:var(--text-secondary); white-space:nowrap; }
+.overview-chart-footer a:hover { color:var(--accent-primary); }
+.overview-notice { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:20px; border:1px solid #b58b42; background:var(--surface-panel); border-radius:6px; padding:12px 14px; color:var(--text-primary); font-size:13px; }
+.overview-notice > svg { color:#b58b42; flex-shrink:0; }
+.overview-notice a { margin-left:auto; display:flex; align-items:center; gap:6px; text-decoration:underline; text-underline-offset:3px; }
+.overview-load-error { display:flex; align-items:flex-start; flex-wrap:wrap; gap:8px; padding:12px 24px; font-size:12px; border-bottom:1px solid var(--border-default); color:var(--text-secondary); }
+.overview-load-error svg { color:#c06c59; flex-shrink:0; margin-top:2px; }
+.overview-load-error button { margin-left:auto; color:var(--accent-primary); text-decoration:underline; text-underline-offset:3px; }
+.overview-report-unavailable { min-height:240px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:var(--text-muted); text-align:center; }
+.overview-report-unavailable p { color:var(--text-primary); font-size:13px; }
+.overview-report-unavailable small { max-width:300px; font-size:12px; line-height:1.6; }
+.overview-aside details > summary,.overview-users > summary,.overview-token-details > summary { display:flex; justify-content:space-between; gap:12px; align-items:center; min-height:56px; padding:16px; list-style:none; cursor:pointer; }
+.overview-aside details > summary::-webkit-details-marker,.overview-users > summary::-webkit-details-marker,.overview-token-details > summary::-webkit-details-marker { display:none; }
+.overview-aside details > summary h2,.overview-users > summary h2,.overview-token-details > summary h2 { font-size:13px; line-height:20px; font-weight:550; }
+.overview-aside details > summary > div { display:flex; align-items:center; gap:10px; }
+.overview-aside details > summary span { color:var(--text-muted); font-size:11px; }
+.overview-aside details > summary > svg,.overview-users > summary > svg,.overview-token-details > summary > svg { color:var(--text-muted); transition:transform .15s; flex-shrink:0; }
+.overview-aside details[open] > summary > svg,.overview-users[open] > summary > svg,.overview-token-details[open] > summary > svg { transform:rotate(180deg); }
+.overview-account-row { display:flex; align-items:center; gap:10px; padding:14px 16px; border-top:1px solid var(--border-default); }
+.overview-account-row:hover { background:var(--surface-hover); }
+.overview-provider-mark { width:20px; height:20px; flex-shrink:0; color:var(--text-secondary); }
+.overview-account-name { display:flex; flex-direction:column; gap:4px; flex:1; min-width:0; }
+.overview-account-name b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; font-weight:500; }
+.overview-account-name small { color:var(--text-muted); font-size:12px; }
+.overview-account-status { display:flex; align-items:center; gap:5px; color:var(--text-secondary); font-size:12px; flex-shrink:0; }
+.health-dot { width:5px; height:5px; border-radius:50%; background:#559f87; flex-shrink:0; }
+.needs-attention { color:var(--text-primary); }
+.needs-attention .health-dot { background:#c49b54; }
+.overview-account-loading { padding:16px; display:grid; gap:12px; }
+.overview-account-empty { padding:16px; display:flex; align-items:flex-start; flex-direction:column; gap:10px; font-size:12px; color:var(--text-secondary); }
+.overview-account-empty small { font-size:12px; line-height:1.6; }
+.overview-panel-link { display:flex; justify-content:space-between; align-items:center; padding:13px 16px; border-top:1px solid var(--border-default); color:var(--text-secondary); font-size:12px; }
 .overview-panel-link:hover { color:var(--accent-primary); }
-.overview-totals dl { padding:0 16px 16px; }
-.overview-totals-updated { padding:0 16px 8px; color:var(--text-muted); font-size:11px; }
-.overview-totals dl > div { display:flex; justify-content:space-between; align-items:center; padding:7px 0; font-size:12px; }
-.overview-totals dt { color:var(--text-secondary); }
-.overview-totals dd { font-variant-numeric:tabular-nums; font-weight:500; }
-.overview-resource-links { display:flex; flex-direction:column; padding:0 4px; gap:3px; }
-.overview-resource-links a { display:flex; gap:8px; align-items:center; min-height:32px; padding:0 8px; font-size:12px; color:var(--text-secondary); border-radius:5px; }
-.overview-resource-links a > :last-child { margin-left:auto; }
-.overview-resource-links a:hover { background:var(--surface-raised); color:var(--text-primary); }
-.overview-granularity { width:96px; }
-.overview-users { margin-top:20px; }
-.overview-users summary { display:flex; align-items:center; justify-content:space-between; padding:15px 16px; cursor:pointer; font-size:12px; font-weight:500; list-style:none; }
-.overview-users summary::-webkit-details-marker { display:none; }
-.overview-users[open] summary { border-bottom:1px solid var(--border-default); }
-.overview-users-content { padding:16px; }
-.overview-segment { border-radius:5px; padding:5px 9px; font-size:11px; color:var(--text-secondary); }
-.overview-segment.selected { background:var(--surface-raised); color:var(--text-primary); }
-.overview-account-empty { padding:18px 16px; display:flex; flex-direction:column; gap:12px; align-items:flex-start; color:var(--text-secondary); font-size:12px; }
-.overview-account-empty small { line-height:1.6; color:var(--text-muted); }
-.overview-chart-empty { display:grid; place-items:center; height:100%; font-size:12px; color:var(--text-muted); }
-@media(max-width:1200px) { .overview-grid { grid-template-columns:minmax(0,1fr) 268px; gap:16px; } .overview-metric { padding:0 16px; } }
-@media(max-width:900px) { .overview-grid { grid-template-columns:1fr; } .overview-aside { display:grid; grid-template-columns:1fr 1fr; } .overview-resource-links { grid-column:1 / -1; flex-direction:row; } .overview-resource-links a { flex:1; } }
-@media(max-width:600px) { .overview-heading { align-items:flex-start; flex-direction:column; gap:16px; margin-bottom:20px; } .overview-heading h1 { font-size:22px; } .overview-filters { width:100%; } .overview-metrics { grid-template-columns:1fr 1fr; row-gap:24px; padding:18px 0; } .overview-metric { padding:0 14px 0 0; } .overview-metric strong { font-size:26px; } .overview-metric small { white-space:normal; } .overview-aside { display:flex; } .overview-health { gap:12px; padding-bottom:18px; } .overview-health .overview-updated { width:100%; margin-left:0; } .overview-resource-links { flex-direction:column; } }
+.overview-subset-note { padding:12px 16px; color:var(--text-muted); font-size:11px; border-top:1px solid var(--border-default); }
+.overview-operations-scope { font-size:11px; line-height:1.6; color:var(--text-muted); margin-bottom:10px; }
+.overview-user-error { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; height:100%; color:var(--text-secondary); font-size:13px; }
+.overview-operations-content { padding:0 16px 16px; }
+.overview-operations-content dl > div { display:flex; justify-content:space-between; gap:16px; align-items:center; padding:9px 0; font-size:12px; }
+.overview-operations-content dt { color:var(--text-secondary); }
+.overview-operations-content dd { font-variant-numeric:tabular-nums; font-weight:500; }
+.overview-operations-content dd small { color:var(--text-muted); font-weight:400; font-size:10px; }
+.overview-key-stat { display:flex; align-items:center; gap:8px; border-top:1px solid var(--border-default); margin-top:8px; padding-top:14px; font-size:12px; color:var(--text-secondary); }
+.overview-key-stat b { margin-left:auto; color:var(--text-primary); font-weight:500; }
+.overview-snapshot-time { margin-top:16px; font-size:11px; color:var(--text-muted); line-height:1.6; }
+.overview-snapshot-time span { color:var(--text-secondary); }
+.overview-batch-link { border:1px solid var(--border-default); border-radius:6px; }
+.overview-users,.overview-token-details { margin-top:24px; }
+.overview-token-details :deep(.token-trend-panel) { border:0; background:transparent; box-shadow:none; }
+.overview-users > summary,.overview-token-details > summary { padding:16px 20px; }
+.overview-users > summary > div,.overview-token-details > summary > div { display:flex; align-items:baseline; flex-wrap:wrap; gap:12px; }
+.overview-users > summary span,.overview-token-details > summary span { color:var(--text-muted); font-size:12px; }
+.overview-users-content { padding:8px 20px 20px; }
+.overview-user-controls { display:flex; justify-content:flex-end; gap:4px; margin-bottom:16px; }
+.overview-segment { border-radius:5px; padding:6px 10px; color:var(--text-secondary); font-size:12px; }
+.overview-segment.selected { color:var(--text-primary); background:var(--surface-hover); }
+.overview-chart-empty { display:grid; place-items:center; height:100%; color:var(--text-muted); }
+.overview-page-loading { display:grid; gap:24px; }
+.overview-page-error { display:flex; align-items:center; flex-direction:column; gap:16px; padding:80px 24px; text-align:center; color:var(--text-secondary); }
+.overview-page-error h2 { font-size:16px; color:var(--text-primary); font-weight:550; }
+.overview-page-error p { max-width:400px; line-height:1.7; }
+@media(max-width:1180px) { .overview-grid { display:flex; flex-direction:column; gap:16px; } .overview-aside { order:1; display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; align-items:start; } .overview-primary { width:100%; gap:20px; } .overview-aside-attention { order:-1; } .overview-aside details > summary { min-height:52px; } .overview-heading { margin-bottom:22px; } }
+@media(max-width:640px) { .overview-heading { align-items:flex-start; gap:18px; flex-direction:column; margin-bottom:22px; } .overview-heading h1 { font-size:22px; line-height:30px; } .overview-filters { width:100%; } .overview-filters > :first-child { flex:1; } .overview-refresh { height:36px; } .overview-context { align-items:flex-start; font-size:11px; } .overview-context > div { gap:5px; flex-direction:column; align-items:flex-start; } .overview-text-action { font-size:12px; padding-top:4px; } .overview-metric { padding:16px 12px; gap:6px; } .overview-metric > span:first-child { font-size:12px; } .overview-metric > span > svg { display:none; } .overview-metric strong { font-size:22px; line-height:28px; } .overview-metric small { font-size:10px; line-height:16px; white-space:normal; text-wrap:balance; } .overview-metric.selected::after { left:12px; right:12px; } .overview-chart-heading { padding:16px 16px 8px; } .overview-chart-heading > div:first-child { gap:5px; flex-direction:column; } .overview-chart-body { padding:0 12px; min-height:240px; } .overview-chart-footer { padding:12px 16px; flex-direction:column; align-items:flex-start; gap:8px; } .overview-aside { grid-template-columns:1fr; gap:10px; } .overview-account-row { padding:12px 16px; } .overview-notice { font-size:12px; } .overview-notice a { margin-left:25px; } .overview-users > summary,.overview-token-details > summary { padding:16px; } .overview-users > summary span,.overview-token-details > summary span { font-size:11px; } .overview-users-content { padding-inline:16px; } }
+@media(prefers-reduced-motion:reduce) { .overview-metric,.overview-aside details > summary > svg,.overview-users > summary,.overview-token-details > summary > svg { transition:none; } }
 </style>

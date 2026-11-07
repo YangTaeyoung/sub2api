@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
-import { defineComponent, ref } from 'vue'
+import { defineComponent, reactive, ref } from 'vue'
 
 import UsageView from '../UsageView.vue'
 
@@ -19,7 +19,7 @@ const { list, exportList, getStats, getSnapshotV2, getById, getModelStats, listE
     getById: vi.fn(),
     getModelStats: vi.fn(),
     listErrorLogs: vi.fn(),
-    routeQuery: {} as Record<string, string>,
+    routeQuery: {} as Record<string, string | string[] | null>,
 		aoaToSheet: vi.fn(() => ({})),
 		sheetAddAoa: vi.fn(),
 		saveAs: vi.fn(),
@@ -110,9 +110,11 @@ vi.mock('vue-i18n', async () => {
   }
 })
 
+const reactiveRouteQuery = reactive(routeQuery)
+
 vi.mock('vue-router', () => ({
   useRoute: () => ({
-    query: routeQuery
+    query: reactiveRouteQuery
   })
 }))
 
@@ -198,6 +200,46 @@ describe('admin UsageView route filters', () => {
   afterEach(() => {
     Object.keys(routeQuery).forEach((key) => delete routeQuery[key])
     vi.useRealTimers()
+  })
+
+  it('filters actual usage requests by routed model and date range', async () => {
+    Object.assign(routeQuery, { model: 'model/a beta', start_date: '2026-11-01', end_date: '2026-11-07' })
+    const wrapper = mountRouteFilteredUsageView()
+    await flushPromises()
+    expect(list).toHaveBeenCalledWith(expect.objectContaining({
+      model: 'model/a beta', start_date: '2026-11-01', end_date: '2026-11-07',
+    }), expect.anything())
+    wrapper.unmount()
+  })
+
+  it('updates model and dates on the same component and clears removed route filters', async () => {
+    Object.assign(routeQuery, { model: 'first-model', user_id: '42', start_date: '2026-11-01', end_date: '2026-11-02' })
+    getById.mockResolvedValue({ id: 42, email: 'route-user@test.com' })
+    const wrapper = mountRouteFilteredUsageView()
+    await flushPromises()
+    list.mockClear()
+    Object.assign(reactiveRouteQuery, { model: 'second-model', start_date: '2026-11-03', end_date: '2026-11-07' })
+    await flushPromises()
+    expect(list).toHaveBeenLastCalledWith(expect.objectContaining({
+      model: 'second-model', user_id: 42, start_date: '2026-11-03', end_date: '2026-11-07', page: 1,
+    }), expect.anything())
+    Object.keys(reactiveRouteQuery).forEach((key) => delete reactiveRouteQuery[key])
+    await flushPromises()
+    const now = new Date()
+    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+    expect(list).toHaveBeenLastCalledWith(expect.objectContaining({
+      model: undefined, user_id: undefined, start_date: formatLocalDate(yesterday), end_date: formatLocalDate(now),
+    }), expect.anything())
+    expect(wrapper.find('[data-test="user-filter-label"]').text()).toBe('')
+    wrapper.unmount()
+  })
+
+  it.each([null, '', '   ', ['first-model', 'second-model']])('ignores invalid model query %j', async (model) => {
+    routeQuery.model = model
+    const wrapper = mountRouteFilteredUsageView()
+    await flushPromises()
+    expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ model: undefined }), expect.anything())
+    wrapper.unmount()
   })
 
   it('shows the routed user while applying user_id to usage requests', async () => {
