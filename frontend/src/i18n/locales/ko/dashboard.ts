@@ -163,10 +163,10 @@ export default {
       "openai": {
         "description": "다음 설정 파일을 Codex CLI 설정 디렉터리에 추가하세요.",
         "authModeTitle": "Codex 인증 모드",
-        "authModeDescription": "호환 모드는 기존 Codex 클라이언트 설정을 유지합니다. API 키 모드는 클라이언트 측 이미지 실행기를 인증합니다.",
+        "authModeDescription": "이 설정은 실시간 웹 검색을 사용 설정합니다. API 키 모드는 기본적으로 Codex 네이티브 이미지 생성을 지원합니다. 구형 클라이언트에는 호환 모드를 선택하세요.",
         "authModeLegacy": "호환 모드",
-        "authModeApiKey": "API 키 모드",
-        "authModeApiKeyRestartNotice": "이 설정을 저장한 뒤 Codex Desktop 또는 CLI를 완전히 종료하고 다시 시작하세요. 그런 다음 새 작업을 만들어 클라이언트의 도구 레지스트리를 다시 구성하세요.",
+        "authModeApiKey": "API 키 모드(권장)",
+        "authModeApiKeyRestartNotice": "이 설정에는 API 키가 들어 있으니 공유하거나 커밋하지 마세요. 저장한 뒤 새 대화에서 테스트하고, 적용되지 않으면 Codex를 다시 시작하세요. 이미지 생성에는 그룹 권한, 사용 가능한 잔액, 업스트림 지원이 필요합니다.",
         "configTomlHint": "config.toml 파일의 맨 앞에 다음 내용을 입력하세요",
         "note": "설정 디렉터리가 있는지 확인하세요. macOS/Linux에서는 mkdir -p ~/.codex를 실행해 만들 수 있습니다.",
         "noteWindows": "Win+R을 누르고 %userprofile%\\.codex를 입력해 설정 디렉터리를 여세요. 디렉터리가 없으면 직접 만드세요."
@@ -438,6 +438,7 @@ export default {
     "noDataToExport": "내보낼 데이터가 없습니다",
     "exportSuccess": "사용량 데이터를 내보냈습니다",
     "exportFailed": "사용량 데이터를 내보내지 못했습니다",
+    "exportRateLimited": "요청이 너무 많습니다. {seconds}초 후 내보내기를 다시 시작합니다",
     "exportExcelSuccess": "사용량 데이터를 Excel 형식으로 내보냈습니다",
     "exportExcelFailed": "사용량 데이터를 내보내지 못했습니다",
     "imageUnit": "개",
@@ -634,6 +635,7 @@ export default {
       "cacheWritePrice": "캐시 쓰기",
       "cacheWrite5mPrice": "캐시 쓰기 (5분)",
       "cacheWrite1hPrice": "캐시 쓰기 (1시간)",
+      "cacheWrite12hPrice": "캐시 쓰기(12h)",
       "cacheReadPrice": "캐시 읽기",
       "imageInputPrice": "이미지 입력",
       "imageOutputPrice": "이미지 출력",
@@ -671,6 +673,7 @@ export default {
     },
     "table": {
       "model": "모델",
+      "copyModelId": "모델 ID {model} 복사",
       "input": "입력",
       "output": "출력",
       "cache": "캐시",

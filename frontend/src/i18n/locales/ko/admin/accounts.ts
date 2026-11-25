@@ -329,6 +329,14 @@ export default {
       }
     },
     "upstreamBilling": {
+      "autoSyncGroup": "업스트림 그룹 이름 및 메모 자동 동기화",
+      "autoSyncGroupHint": "프로브가 성공하면 업스트림이 제공한 텍스트로 로컬 이름과 메모를 바꿉니다. 계정 배율 동기화는 별도로 제어합니다.",
+      "syncGroup": "업스트림 그룹 이름 및 메모 동기화",
+      "saveGroup": "업스트림 그룹 이름 및 메모 동기화 후 저장",
+      "groupCredentials": "업스트림 URL과 API 키를 입력하세요. URL이나 프록시를 변경한 뒤에는 키를 다시 입력하세요.",
+      "groupUnavailable": "업스트림이 동기화할 그룹 이름이나 설명을 반환하지 않았습니다.",
+      "groupFailed": "업스트림 그룹 정보를 동기화하지 못했습니다",
+      "groupSynced": "계정 이름과 메모를 동기화했습니다",
       "trustWarning": "이 요율은 현재 API 키에 대해 업스트림 사이트가 고지한 값입니다. Sub2API는 실제 청구 금액과 일치하는지 확인할 수 없습니다. 업스트림 사이트나 중개자가 위조되거나 오래되었거나 수정된 데이터를 반환할 수 있습니다. 청구 내역, 잔액 변동, 실제 사용량과 대조해 확인하세요.",
       "autoProbe": "업스트림 고지 요율 자동 조회",
       "autoProbeHint": "전역 주기에 따라 업스트림 고지 요율을 새로 조회합니다. 이 설정만으로는 계정 요율이 변경되지 않습니다.",
@@ -496,6 +504,8 @@ export default {
     "testConnection": "연결 테스트",
     "reAuthorize": "재인증",
     "refreshToken": "토큰 새로고침",
+    "refreshTokenHint": "토큰은 백그라운드에서 자동으로 갱신됩니다. 수동 갱신을 자주 하면 자동 갱신과 충돌해 토큰이 무효화되고 계정이 일시 중지될 수 있습니다.",
+    "refreshTokenFrequentWarning": "마지막 수동 갱신 후 1분이 지나지 않았습니다. 잦은 갱신은 백그라운드 자동 갱신과 충돌해 토큰을 무효화할 수 있습니다. 꼭 필요할 때만 다시 시도하세요.",
     "noAccountsYet": "계정이 없습니다",
     "createFirstAccount": "첫 계정을 만들어 AI 서비스를 시작하세요.",
     "tokenRefreshed": "토큰을 새로고침했습니다",
@@ -632,6 +642,8 @@ export default {
       "apiKeyHint": "OpenAI API 키",
       "oauthPassthrough": "자동 전달(인증만)",
       "oauthPassthroughDesc": "사용 설정하면 이 OpenAI 계정에서 자동 전달을 사용합니다. 게이트웨이는 인증 정보만 교체하고 요청과 응답은 그대로 전달하며, 과금, 동시 요청 수, 감사 로그 및 필수 안전 필터링은 유지합니다.",
+      "passthroughModelFilter": "패스스루 계정을 모델로 필터링",
+      "passthroughModelFilterDesc": "계정 모델 허용 목록과 매핑 원본 이름으로 이 계정을 선택합니다. 매핑 대상은 패스스루 요청의 모델 이름을 바꾸지 않습니다. 목록이 비어 있으면 모든 모델을 허용합니다. 기본값은 사용 안 함입니다.",
       "flattenNamespaces": "Codex 네임스페이스 도구 평탄화(호환성)",
       "flattenNamespacesDesc": "기본적으로 사용 중지되어 있습니다. /responses에서 Codex 네임스페이스 도구 선언을 그대로 전달하며, 이는 ChatGPT Codex 백엔드에서 기대하는 방식입니다. 이 OAuth 계정이 네임스페이스 도구를 거부하는 릴레이로 라우팅되는 경우에만 사용 설정하세요. 평탄화하면 도구 이름이 namespace__tool로 바뀌어 협업 도구를 function.<namespace>.<tool> 형식으로 호출하는 모델에서 문제가 발생합니다. 압축 요청은 이 설정과 관계없이 항상 평탄화됩니다.",
       "longContextBilling": "API 장문 컨텍스트 요금",
@@ -662,6 +674,9 @@ export default {
       "responsesModeTextDisabledHint": "Responses / Chat Completions 엔드포인트를 사용 설정하지 않은 경우에는 적용되지 않습니다.",
       "imagesUrlToB64Json": "이미지 결과 URL을 base64로 변환",
       "imagesUrlToB64JsonDesc": "OpenAI API 키 계정의 비스트리밍 이미지 응답에만 적용됩니다. 업스트림 이미지 항목에 url은 있지만 b64_json이 없는 경우, 게이트웨이가 해당 URL에서 이미지를 다운로드해 base64 내용을 b64_json에 채웁니다(url은 유지). 다운로드에 실패하면 응답을 변경하지 않고 반환합니다.",
+      "imageSizeTiers": "이미지 크기 등급",
+      "imageSizeTiersDesc": "이 계정이 처리할 이미지 크기 등급을 과금 등급 기준으로 제한합니다. 긴 변이 ≤1024면 1K, ≤2048이면 2K, 그보다 크면 4K입니다(2560x1440은 4K). 크기를 명시한 요청은 해당 등급을 허용하는 계정에만 배정됩니다. 크기가 없거나 auto인 요청은 등급 제한이 없는 계정을 우선하고, 그다음 4K, 2K, 1K를 허용하는 계정 순으로 배정됩니다. 모든 등급을 선택하면 제한이 없습니다. Images API와 Responses 이미지 생성 도구에 적용됩니다.",
+      "imageSizeTiersAtLeastOne": "등급을 하나 이상 유지하세요",
       "endpointCapabilities": "엔드포인트 기능",
       "endpointCapabilitiesDesc": "계정 라우팅에 사용됩니다. 텍스트 엔드포인트는 위의 Responses API 지원 설정을 따르며 Responses, Chat Completions 또는 자동 모드로 표시됩니다. Embeddings는 /v1/embeddings를 별도로 제어합니다.",
       "capabilityResponses": "Responses",
@@ -717,7 +732,7 @@ export default {
       "testMode": "테스트 모드",
       "testModeDefault": "기본 요청",
       "testModeCompact": "간결 모드 탐지",
-      "modelRestrictionDisabledByPassthrough": "자동 패스스루가 사용 설정되어 있어 모델 허용 목록 및 매핑이 적용되지 않습니다."
+      "modelRestrictionDisabledByPassthrough": "자동 패스스루는 기본적으로 모델 제한을 무시합니다. 계정 선택에만 사용하려면 \"패스스루 계정을 모델로 필터링\"을 사용 설정하세요."
     },
     "grok": {
       "baseUrlHint": "Grok OAuth 계정은 공식 xAI API 기본 URL로 요청을 전달합니다.",
@@ -809,6 +824,7 @@ export default {
     "enterCustomModelName": "사용자 지정 모델 이름 입력",
     "addModel": "추가",
     "modelExists": "모델이 이미 있습니다",
+    "modelWildcardNotSupported": "모델 허용 목록에서는 와일드카드를 지원하지 않습니다. 정확한 모델 이름을 입력하세요.",
     "modelMappingConflict": "{from} → {to} 매핑이 이미 있습니다. 이 모델을 허용 목록에 추가하기 전에 모델 매핑에서 수정하거나 삭제하세요",
     "modelCount": "모델 {count}개",
     "poolMode": "풀 모드",
@@ -856,7 +872,37 @@ export default {
       "blockedName": "이 헤더는 재정의할 수 없습니다(인증 및 연결 제어 헤더는 시스템에서 관리합니다).",
       "duplicateName": "중복된 헤더 이름입니다(대소문자를 구분하지 않음).",
       "invalidValue": "잘못된 헤더 값입니다(제어 문자는 사용할 수 없으며 최대 길이는 8192자입니다).",
-      "tooManyEntries": "헤더 재정의 항목이 너무 많습니다(최대 64개)."
+      "tooManyEntries": "헤더 재정의 항목이 너무 많습니다(최대 64개).",
+      "invalidVariable": "잘못된 변수입니다. 아래 \"ID 변수\"에서 선택하세요. 다른 변수 이름은 지원하지 않습니다",
+      "variableNotAllowed": "OAuth 계정은 ID 변수를 지원하지 않습니다. 이 행을 삭제하거나 고정 값을 사용하세요",
+      "removeRow": "이 헤더 삭제",
+      "previewLabel": "전송 값",
+      "variablesTitle": "ID 변수",
+      "variablesHint": "각 요청을 보낸 게이트웨이 사용자를 업스트림에 알려, 요청을 계층별로 추적할 수 있게 합니다. 값을 편집하는 중에 변수를 클릭하면 커서 위치에 삽입되고, 그렇지 않으면 새 행이 추가됩니다.",
+      "variablesUnavailable": "OAuth 계정은 ID 변수를 지원하지 않습니다. 구독형 업스트림에는 게이트웨이 사용자 정보가 전달되지 않습니다. 여기서는 고정 값만 사용할 수 있습니다.",
+      "variables": {
+        "user_id": {
+          "label": "사용자 ID",
+          "desc": "요청을 보낸 게이트웨이 사용자"
+        },
+        "api_key_id": {
+          "label": "API 키 ID",
+          "desc": "이 요청에 사용된 키입니다. 한 사용자의 여러 키를 구분합니다"
+        },
+        "group_id": {
+          "label": "그룹 ID",
+          "desc": "키에 연결된 그룹입니다. 연결된 그룹이 없으면 헤더를 보내지 않습니다"
+        },
+        "request_id": {
+          "label": "요청 ID",
+          "desc": "오류 기록의 \"요청 ID\"와 같아 바로 대조할 수 있습니다. 영문자, 숫자, . _ - 이외의 문자는 밑줄로 바뀝니다"
+        }
+      },
+      "variableNotes": {
+        "unresolved": "값을 구할 수 없으면(연결 테스트, 모델 동기화 등 사용자가 없는 백그라운드 요청) 헤더 전체를 보내지 않으며, 클라이언트가 보낸 같은 이름의 헤더도 전달하지 않습니다.",
+        "apiKeyOnly": "API 키 계정에만 적용됩니다. OAuth 계정은 ID 정보를 전달하지 않습니다.",
+        "websocket": "OpenAI WebSocket 모드에서는 핸드셰이크 헤더가 연결 단위로 적용됩니다. 요청 ID가 포함된 헤더는 보내지 않으며, 전달되는 ID 정보가 다른 요청끼리는 업스트림 연결을 공유하지 않습니다."
+      }
     },
     "grokModelDiagnostics": {
       "title": "모델 카탈로그 진단",
@@ -1612,6 +1658,12 @@ export default {
       "gemini3Pro": "G3P",
       "gemini3Flash": "G3F",
       "gemini3Image": "G31FI",
+      "antigravityGemini5h": "G·5h",
+      "antigravityGeminiWeekly": "G·주",
+      "antigravityArgon5h": "A·5h",
+      "antigravityArgonWeekly": "A·주",
+      "antigravityOther5h": "C·5h",
+      "antigravityOtherWeekly": "C·주",
       "claude": "Claude",
       "grokRequests": "요청",
       "grokTokens": "토큰",
@@ -1635,6 +1687,10 @@ export default {
       "grokLastHeadersSeen": "헤더 {time}",
       "passiveSampled": "수동 수집",
       "activeQuery": "조회",
+      "quotaRefreshFailedCached": "새로고침에 실패했습니다. 이전 관측값을 표시하며, 남은 할당량은 확인되지 않았습니다.",
+      "quotaRefreshFailedUnknown": "새로고침에 실패했습니다. 현재 할당량을 알 수 없습니다.",
+      "quotaObservedAt": "할당량 관측 시각: ",
+      "quotaObservationUnknown": "알 수 없음(캐시)",
       "estimatedTotalCost": "총 예상 비용 ${cost}",
       "estimatedTotalCostTooltip": "현재 구간의 비용과 사용률을 바탕으로 사용률 100%일 때의 총비용을 추정합니다"
     },

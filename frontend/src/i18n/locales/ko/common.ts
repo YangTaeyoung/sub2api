@@ -243,7 +243,8 @@ export default {
     "passwordMinLength": "비밀번호는 6자 이상이어야 합니다",
     "loginFailed": "로그인에 실패했습니다. 로그인 정보를 확인하고 다시 시도해 주세요.",
     "errors": {
-      "USER_NOT_ACTIVE": "계정이 비활성화되었습니다."
+      "USER_NOT_ACTIVE": "계정이 비활성화되었습니다.",
+      "EMAIL_BLOCKED": "사용할 수 없는 이메일 주소입니다. 다른 주소를 사용해 주세요."
     },
     "registrationFailed": "가입에 실패했습니다. 다시 시도해 주세요.",
     "emailDomainRegistrationLimit": "이 이메일 도메인으로는 계정을 더 이상 등록할 수 없습니다. 일반 이메일을 사용하거나, 기업 도메인을 허용 목록에 추가하려면 지원팀에 문의해 주세요.",

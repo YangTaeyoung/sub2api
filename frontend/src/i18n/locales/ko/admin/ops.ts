@@ -353,6 +353,12 @@ export default {
         "upstream_detail": "업스트림 세부 정보",
         "upstream_events": "업스트림 이벤트"
       },
+      "reportedHeaders": {
+        "title": "전달된 ID 헤더",
+        "hint": "이 요청에서 실제로 업스트림에 보낸 ID 헤더입니다(계정 헤더 재정의의 변수로 생성). 업스트림과 계층별로 대조할 때 사용하세요. 재정의 값에 고정 텍스트가 섞여 있으면 고정 텍스트는 …로, 변수는 name=value로 표시되므로 비밀 값이 로그에 남지 않습니다.",
+        "copy": "복사",
+        "copied": "복사됨"
+      },
       "basicInfo": "기본 정보",
       "platform": "플랫폼",
       "model": "모델",

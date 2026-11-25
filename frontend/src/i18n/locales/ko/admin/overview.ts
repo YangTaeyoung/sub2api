@@ -1312,6 +1312,8 @@ export default {
       "title": "OpenAI Fast 모드",
       "force": "Fast 강제 적용(우선순위)",
       "hint": "이 그룹의 OpenAI 요청에 service_tier=priority를 강제 적용합니다. 전역 Fast/Flex 정책에 따라 필터링되거나 차단될 수 있습니다. 저장 후 새 요청에는 즉시 적용되며, 기존 WebSocket 세션은 다시 연결해야 합니다.",
+      "forceUltrafast": "Ultra Fast 강제 적용(ultrafast)",
+      "ultrafastHint": "지원 모델에 Ultra Fast(service_tier=ultrafast)를 강제 적용합니다. Pro 200에는 GPT-6.2 Sol Ultrafast가 포함됩니다. Pro 500에는 Sol과 Astra Ultrafast가 모두 포함됩니다. 다른 구독은 계정이 제공하는 티어를 사용합니다. 사용할 수 없으면 Fast 강제 적용이 클라이언트 티어보다 우선합니다. GPT-6.2 Sol과 Astra는 2027년 2월 28일(태평양 시간)까지 Standard의 3배, 이후 6배로 과금됩니다. GPT-6 Astra와 GPT-6.1 Sol은 6배입니다. Fast 무료 제공에는 Ultra Fast가 포함되지 않습니다.",
       "free": "Fast 무료 제공",
       "freeHint": "이 그룹의 Fast 요청에는 계속 priority 티어가 적용되지만, 고객에게는 Standard와 동일한 요금이 청구됩니다."
     },
