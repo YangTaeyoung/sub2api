@@ -19,6 +19,7 @@ const AUTH_USER_KEY = 'auth_user'
 const REFRESH_TOKEN_KEY = 'refresh_token'
 const TOKEN_EXPIRES_AT_KEY = 'token_expires_at' // 存储过期时间戳而非有效期
 const PENDING_AUTH_SESSION_KEY = 'pending_auth_session'
+const RUN_MODE_KEY = 'auth_run_mode'
 const AUTO_REFRESH_INTERVAL = 60 * 1000 // 60 seconds for user data refresh
 const TOKEN_REFRESH_BUFFER = 120 * 1000 // 120 seconds before expiry to refresh token
 
@@ -101,6 +102,11 @@ export const useAuthStore = defineStore('auth', () => {
 
   // ==================== Actions ====================
 
+  function setRunMode(mode: 'standard' | 'simple'): void {
+    runMode.value = mode
+    localStorage.setItem(RUN_MODE_KEY, mode)
+  }
+
   /**
    * Initialize auth state from localStorage
    * Call this on app startup to restore session
@@ -117,6 +123,9 @@ export const useAuthStore = defineStore('auth', () => {
       try {
         token.value = savedToken
         user.value = JSON.parse(savedUser)
+        if (localStorage.getItem(RUN_MODE_KEY) === 'simple') {
+          runMode.value = 'simple'
+        }
         refreshTokenValue.value = savedRefreshToken
         tokenExpiresAt.value = savedExpiresAt ? parseInt(savedExpiresAt, 10) : null
 
@@ -308,7 +317,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     // Extract run_mode if present
     if (response.user.run_mode) {
-      runMode.value = response.user.run_mode
+      setRunMode(response.user.run_mode)
     }
     const { run_mode: _run_mode, ...userData } = response.user
     user.value = userData
@@ -440,7 +449,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await authAPI.getCurrentUser()
       if (response.data.run_mode) {
-        runMode.value = response.data.run_mode
+        setRunMode(response.data.run_mode)
       }
       const { run_mode: _run_mode, ...userData } = response.data
       user.value = userData
@@ -476,6 +485,7 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem(AUTH_USER_KEY)
     localStorage.removeItem(REFRESH_TOKEN_KEY)
     localStorage.removeItem(TOKEN_EXPIRES_AT_KEY)
+    localStorage.removeItem(RUN_MODE_KEY)
 
     if (options?.preservePendingAuthSession) {
       pendingAuthSession.value = getPersistedPendingAuthSession()

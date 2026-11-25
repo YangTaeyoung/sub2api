@@ -386,5 +386,32 @@ describe('useAuthStore', () => {
       const store = useAuthStore()
       expect(store.isSimpleMode).toBe(false)
     })
+
+    it('restores simple mode from storage before the user refresh resolves', async () => {
+      mockLogin.mockResolvedValue({
+        ...fakeAuthResponse,
+        user: { ...fakeUser, run_mode: 'simple' as const },
+      })
+      await useAuthStore().login({ email: 'test@example.com', password: '123456' })
+
+      setActivePinia(createPinia())
+      mockGetCurrentUser.mockReturnValue(new Promise(() => {}))
+      const restored = useAuthStore()
+      restored.checkAuth()
+
+      expect(restored.isSimpleMode).toBe(true)
+    })
+
+    it('forgets the stored run mode on logout', async () => {
+      mockLogin.mockResolvedValue({
+        ...fakeAuthResponse,
+        user: { ...fakeUser, run_mode: 'simple' as const },
+      })
+      const store = useAuthStore()
+      await store.login({ email: 'test@example.com', password: '123456' })
+      await store.logout()
+
+      expect(localStorage.getItem('auth_run_mode')).toBeNull()
+    })
   })
 })
