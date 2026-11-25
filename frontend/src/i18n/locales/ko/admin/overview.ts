@@ -1019,7 +1019,7 @@ export default {
       "no": "아니요"
     },
     "i18nField": {
-      "default": "기본값",
+      "default": "기본 언어",
       "add": "{language} 버전 추가",
       "edit": "{language} 버전 수정",
       "placeholder": "{language} 버전; 비워 두면 기본 문구가 표시됩니다"

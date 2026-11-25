@@ -2,7 +2,7 @@
   <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
     <button
       type="button"
-      class="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline disabled:cursor-not-allowed disabled:opacity-50 dark:text-blue-400"
+      class="btn btn-secondary btn-sm"
       :disabled="!source || loading"
       :title="!source ? t('admin.accounts.upstreamBilling.groupCredentials') : undefined"
       @click="sync"
@@ -10,7 +10,7 @@
       <Icon name="refresh" size="xs" :class="{ 'animate-spin': loading }" />
       {{ t('admin.accounts.upstreamBilling.syncGroup') }}
     </button>
-    <label v-if="allowAuto" class="inline-flex items-center gap-2 text-xs text-gray-700 dark:text-gray-200"
+    <label v-if="allowAuto" class="inline-flex items-center gap-2 text-xs af-secondary"
       :title="t('admin.accounts.upstreamBilling.autoSyncGroupHint')">
       {{ t('admin.accounts.upstreamBilling.autoSyncGroup') }}
       <Toggle v-model="auto" data-testid="upstream-billing-group-sync"
@@ -20,6 +20,7 @@
 </template>
 
 <script setup lang="ts">
+import '@/components/account/accountForm.css'
 import { onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { adminAPI } from '@/api/admin'

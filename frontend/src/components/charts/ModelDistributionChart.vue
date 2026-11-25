@@ -116,8 +116,8 @@
 
     <div v-if="!showChart && activeView === 'model_distribution' && !loading && displayModelStats.length" class="distribution-mobile-models">
       <div v-for="model in displayModelStats" :key="model.model" class="mobile-model-row">
-        <RouterLink v-if="modelUsageLinks" :to="modelUsageLocation(model.model)" class="mobile-model-name model-usage-link">{{ model.model }}</RouterLink>
-        <button v-else type="button" class="mobile-model-name" :aria-expanded="expandedKey === `model-${model.model}`" @click="enableBreakdown && !modelUsageLinks && toggleBreakdown('model', model.model)">{{ model.model }}<svg v-if="enableBreakdown" class="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7"/></svg></button>
+        <RouterLink v-if="modelUsageLinks" :to="modelUsageLocation(model.model)" class="mobile-model-name model-usage-link">{{ formatModelDisplayName(model.model) }}</RouterLink>
+        <button v-else type="button" class="mobile-model-name" :aria-expanded="expandedKey === `model-${model.model}`" @click="enableBreakdown && !modelUsageLinks && toggleBreakdown('model', model.model)">{{ formatModelDisplayName(model.model) }}<svg v-if="enableBreakdown" class="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7"/></svg></button>
         <div class="mobile-model-metrics">
           <span :class="{ 'active-mobile-metric': metric === 'requests' }">{{ t('admin.dashboard.requests') }} <b>{{ formatNumber(model.requests) }}</b></span>
           <span :class="{ 'active-mobile-metric': metric === 'tokens' }">{{ t('admin.dashboard.tokens') }} <b>{{ formatTokens(model.total_tokens) }}</b></span>
@@ -159,11 +159,11 @@
                   :class="enableBreakdown ? 'text-gray-900 hover:text-primary-600 dark:text-gray-100 dark:hover:text-primary-300' : 'text-gray-900 dark:text-white'"
                   :title="model.model"
                 >
-                  <RouterLink v-if="modelUsageLinks" :to="modelUsageLocation(model.model)" class="model-usage-link" @click.stop>{{ model.model }}</RouterLink>
+                  <RouterLink v-if="modelUsageLinks" :to="modelUsageLocation(model.model)" class="model-usage-link" @click.stop>{{ formatModelDisplayName(model.model) }}</RouterLink>
                   <button v-else type="button" class="inline-flex items-center gap-1 text-left" :disabled="!enableBreakdown" :aria-expanded="expandedKey === `model-${model.model}`" @click.stop="enableBreakdown && toggleBreakdown('model', model.model)">
                     <svg v-if="enableBreakdown && expandedKey === `model-${model.model}`" class="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     <svg v-else-if="enableBreakdown" class="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    {{ model.model }}
+                    {{ formatModelDisplayName(model.model) }}
                   </button>
                 </td>
                 <td class="py-1.5 text-right text-gray-600 dark:text-gray-400" :class="{ 'active-metric-cell': !showChart && metric === 'requests' }">
@@ -285,6 +285,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatModelDisplayName } from '@/utils/modelDisplayName'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
@@ -412,7 +413,8 @@ const sourceOptions = computed(() => [
 ])
 const rankRows = computed<DistributionRankRow[]>(() => displayModelStats.value.map((model) => ({
   key: `model-${model.model}`,
-  label: model.model,
+  label: formatModelDisplayName(model.model),
+  title: model.model,
   requests: model.requests,
   total_tokens: model.total_tokens,
   actual_cost: model.actual_cost,

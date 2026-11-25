@@ -1,8 +1,9 @@
 /**
  * Centralized platform color definitions.
  *
- * Platform styling helpers. Every platform resolves to the same neutral
- * classes; the platform is identified by its glyph and label.
+ * Platform styling helpers. Surfaces (badges, borders, buttons) resolve to the
+ * same neutral classes for every platform; only the glyph carries the
+ * platform colour.
  */
 
 import { getPlatformSpec } from '@/constants/platformCatalog'
@@ -30,7 +31,23 @@ const BORDER_STRONG = 'border-gray-300 dark:border-dark-600'
 const ACCENT = '#68707e'
 const ACCENT_BAR = 'bg-gray-300 dark:bg-dark-600'
 const TEXT = 'text-gray-700 dark:text-dark-200'
-const ICON = 'text-gray-500 dark:text-dark-300'
+const ICON: Record<string, string> = {
+  anthropic: 'text-orange-500 dark:text-orange-400',
+  openai: 'text-emerald-500 dark:text-emerald-400',
+  antigravity: 'text-purple-500 dark:text-purple-400',
+  gemini: 'text-blue-500 dark:text-blue-400',
+  grok: 'text-zinc-800 dark:text-zinc-200',
+  kimi: 'text-pink-500 dark:text-pink-400',
+  zhipu: 'text-indigo-500 dark:text-indigo-400',
+  deepseek: 'text-teal-500 dark:text-teal-400',
+  minimax: 'text-rose-500 dark:text-rose-400',
+  opencode_go: 'text-amber-500 dark:text-amber-300',
+  typesafe: 'text-sky-500 dark:text-sky-300',
+  command_code: 'text-neutral-500 dark:text-neutral-300',
+  cline: 'text-violet-500 dark:text-violet-400',
+  composite: 'text-cyan-600 dark:text-cyan-300'
+}
+const ICON_DEFAULT = 'text-gray-500 dark:text-dark-300'
 const BUTTON = 'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 dark:bg-primary-600 dark:hover:bg-primary-500'
 const GRADIENT = 'from-gray-800 to-gray-800 dark:from-dark-700 dark:to-dark-700'
 const GRADIENT_TEXT = 'text-gray-200'
@@ -64,8 +81,8 @@ export function platformTextClass(_p: string): string {
   return TEXT
 }
 
-export function platformIconClass(_p: string): string {
-  return ICON
+export function platformIconClass(p: string): string {
+  return ICON[p] ?? ICON_DEFAULT
 }
 
 export function platformButtonClass(_p: string): string {

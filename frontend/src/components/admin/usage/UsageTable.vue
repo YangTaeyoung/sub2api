@@ -63,14 +63,14 @@
               </div>
             </div>
             <div v-else-if="row.upstream_model && row.upstream_model !== row.model" class="space-y-0.5">
-              <div class="break-all font-medium text-gray-900 dark:text-white">
-                {{ row.model }}
+              <div class="break-all font-medium text-gray-900 dark:text-white" :title="row.model">
+                {{ formatModelDisplayName(row.model) }}
               </div>
               <div class="break-all text-gray-500 dark:text-gray-400">
                 <span class="mr-0.5">↳</span>{{ row.upstream_model }}
               </div>
             </div>
-            <span v-else class="font-medium text-gray-900 dark:text-white">{{ row.model }}</span>
+            <span v-else class="font-medium text-gray-900 dark:text-white" :title="row.model">{{ formatModelDisplayName(row.model) }}</span>
             <div
               v-if="row.upstream_model_mismatch === true && row.upstream_response_model"
               class="break-all pl-3 text-[11px]"
@@ -545,6 +545,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatModelDisplayName } from '@/utils/modelDisplayName'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

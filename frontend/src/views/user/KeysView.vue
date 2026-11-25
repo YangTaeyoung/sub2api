@@ -1505,7 +1505,7 @@ const shouldSubmitEditStatus = (key: ApiKey, status: 'active' | 'inactive') => {
 const groupFilterOptions = computed(() => [
   { value: '', label: t('keys.allGroups') },
   { value: 0, label: t('keys.noGroup') },
-  ...groups.value.map((g) => ({ value: g.id, label: g.name }))
+  ...groups.value.map((g) => ({ value: g.id, label: g.name, platform: g.platform }))
 ])
 
 const statusFilterOptions = computed(() => [

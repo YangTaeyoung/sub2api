@@ -20,10 +20,10 @@
             <button
               v-if="showCloseButton"
               @click="emit('close')"
-              class="-mr-2 rounded-xl p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 focus-visible:ring-offset-2 dark:text-dark-500 dark:hover:bg-dark-700 dark:hover:text-dark-300 dark:focus-visible:ring-offset-dark-900"
+              class="modal-close"
               aria-label="Close modal"
             >
-              <Icon name="x" size="md" />
+              <Icon name="x" size="sm" />
             </button>
           </div>
 
@@ -97,7 +97,7 @@ const widthClasses = computed(() => {
   const widths: Record<DialogWidth, string> = {
     narrow: 'max-w-md',
     normal: 'max-w-lg',
-    wide: 'w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl',
+    wide: 'w-full sm:max-w-2xl lg:max-w-3xl',
     'extra-wide': 'w-full sm:max-w-3xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl',
     full: 'w-full sm:max-w-4xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl'
   }

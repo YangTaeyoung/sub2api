@@ -21,7 +21,11 @@
     >
       <span class="select-value">
         <slot name="selected" :option="selectedOption">
-          {{ selectedLabel }}
+          <span v-if="optionPlatform(selectedOption)" class="select-value-with-icon">
+            <PlatformIcon :platform="optionPlatform(selectedOption)" size="sm" class="select-platform-icon" />
+            <span class="truncate">{{ selectedLabel }}</span>
+          </span>
+          <template v-else>{{ selectedLabel }}</template>
         </slot>
       </span>
       <span
@@ -99,6 +103,12 @@
                   size="sm"
                   class="flex-shrink-0 text-gray-400"
                 />
+                <PlatformIcon
+                  v-if="optionPlatform(option)"
+                  :platform="optionPlatform(option)"
+                  size="sm"
+                  class="select-platform-icon"
+                />
                 <span class="select-option-label" :class="option._creatable && 'italic text-gray-500 dark:text-dark-300'">{{ getOptionLabel(option) }}</span>
                 <Icon
                   v-if="isSelected(option)"
@@ -125,6 +135,7 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
+import PlatformIcon from './PlatformIcon.vue'
 
 const { t } = useI18n()
 
@@ -267,6 +278,11 @@ const isGroupHeaderOption = (option: any): boolean => {
     return option.kind === 'group'
   }
   return false
+}
+
+const optionPlatform = (option: unknown): string => {
+  const platform = (option as Record<string, unknown> | null | undefined)?.platform
+  return typeof platform === 'string' ? platform : ''
 }
 
 const selectedOption = computed(() => {
@@ -546,6 +562,9 @@ onUnmounted(() => {
 .select-value {
   @apply flex-1 truncate text-left;
 }
+
+.select-value-with-icon { display: inline-flex; min-width: 0; align-items: center; gap: 6px; }
+.select-platform-icon { flex-shrink: 0; }
 
 .select-icon {
   @apply flex-shrink-0 text-gray-400 dark:text-dark-400;

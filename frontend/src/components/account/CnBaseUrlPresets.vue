@@ -1,16 +1,12 @@
 <template>
-  <div class="flex flex-wrap gap-2">
+  <div class="af-chips">
     <button
       v-for="preset in presets"
       :key="preset.mode + ':' + preset.protocol + ':' + preset.url"
       type="button"
       data-testid="cn-base-url-preset"
-      :class="[
-        'rounded-lg px-3 py-1 text-xs transition-colors',
-        isActive(preset)
-          ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
-          : 'bg-gray-100 text-gray-700 hover:bg-primary-50 hover:text-primary-700 dark:bg-dark-600 dark:text-gray-300 dark:hover:bg-primary-900/30 dark:hover:text-primary-400'
-      ]"
+      :aria-pressed="isActive(preset)"
+      :class="['af-chip', { 'af-chip-on': isActive(preset) }]"
       @click="emit('select', preset)"
     >
       {{ preset.label }} ({{ displayUrl(preset.url) }})
@@ -19,6 +15,7 @@
 </template>
 
 <script setup lang="ts">
+import '@/components/account/accountForm.css'
 import { computed } from 'vue'
 import { CN_BASE_URL_PRESETS, type CnBaseUrlPreset } from './credentialsBuilder'
 

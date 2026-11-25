@@ -40,6 +40,6 @@ const privacyOpts = computed(() => [
 const gOpts = computed(() => [
   { value: '', label: t('admin.accounts.allGroups') },
   { value: 'ungrouped', label: t('admin.accounts.ungroupedGroup') },
-  ...(props.groups || []).map(g => ({ value: String(g.id), label: g.name }))
+  ...(props.groups || []).map(g => ({ value: String(g.id), label: g.name, platform: g.platform }))
 ])
 </script>

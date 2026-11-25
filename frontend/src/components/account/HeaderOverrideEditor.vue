@@ -29,7 +29,7 @@
         />
         <button
           type="button"
-          class="rounded-lg p-2 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
+          class="af-icon-btn af-icon-btn-danger"
           :aria-label="t('admin.accounts.headerOverride.removeRow')"
           :title="t('admin.accounts.headerOverride.removeRow')"
           @click="removeRow(index)"
@@ -57,16 +57,16 @@
       </p>
       <p
         v-else-if="rowPreviews[index]"
-        class="mt-1 flex min-w-0 items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400"
+        class="af-note mt-1 flex min-w-0 items-center gap-1.5"
         data-testid="header-override-row-preview"
       >
         <span class="flex-shrink-0">{{ t('admin.accounts.headerOverride.previewLabel') }}</span>
-        <code class="truncate rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-700 dark:bg-dark-700 dark:text-gray-200">
-          <span class="text-gray-500 dark:text-gray-400">{{ row.name.trim().toLowerCase() }}:</span>
+        <code class="af-code truncate">
+          <span class="af-muted">{{ row.name.trim().toLowerCase() }}:</span>
           <template v-for="(part, partIndex) in rowPreviews[index]" :key="partIndex">
             <span
               v-if="part.variable"
-              class="font-semibold text-primary-600 dark:text-primary-400"
+              class="af-code-var"
               :title="t(`admin.accounts.headerOverride.variables.${part.variable}.label`)"
             >{{ part.text }}</span>
             <span v-else>{{ part.text }}</span>
@@ -78,7 +78,7 @@
 
   <button
     type="button"
-    class="w-full rounded-lg border-2 border-dashed border-gray-300 px-4 py-2 text-gray-600 transition-colors hover:border-gray-400 hover:text-gray-700 dark:border-dark-500 dark:text-gray-400 dark:hover:border-dark-400 dark:hover:text-gray-300"
+    data-af-add class="btn btn-secondary btn-sm"
     @click="addRow"
   >
     <svg class="mr-1 inline h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -90,58 +90,54 @@
   <!-- 身份上报变量 -->
   <div
     v-if="allowVariables"
-    class="rounded-lg border border-gray-200 bg-gray-50/70 p-3 dark:border-dark-600 dark:bg-dark-700/40"
+    class="af-sub"
     data-testid="header-override-variables"
   >
     <div class="flex items-center gap-1.5">
-      <svg class="h-4 w-4 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg class="h-4 w-4 af-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.5 3.75H6A2.25 2.25 0 003.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0120.25 6v1.5m0 9V18A2.25 2.25 0 0118 20.25h-1.5m-9 0H6A2.25 2.25 0 013.75 18v-1.5M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
-      <span class="text-sm font-medium text-gray-800 dark:text-gray-100">
+      <span class="text-sm font-medium af-primary">
         {{ t('admin.accounts.headerOverride.variablesTitle') }}
       </span>
     </div>
-    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+    <p class="input-hint">
       {{ t('admin.accounts.headerOverride.variablesHint') }}
     </p>
 
-    <div class="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+    <div class="af-chips mt-2">
       <button
         v-for="variable in HEADER_OVERRIDE_VARIABLES"
         :key="variable"
         type="button"
-        class="group flex items-start gap-2 rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-left transition-colors hover:border-primary-400 hover:bg-primary-50/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:border-dark-500 dark:bg-dark-800 dark:hover:border-primary-500 dark:hover:bg-primary-900/20"
+        class="af-chip"
         :data-testid="`header-override-variable-${variable}`"
         @mousedown.prevent
         @click="insertVariable(variable)"
       >
-        <span class="min-w-0 flex-1">
-          <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-            <code class="rounded bg-primary-50 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">{{ headerOverrideVariableToken(variable) }}</code>
-            <span class="text-xs font-medium text-gray-800 dark:text-gray-100">
+        <span class="af-var-body">
+          <span class="af-var-head">
+            <code class="font-mono text-[11px]">{{ headerOverrideVariableToken(variable) }}</code>
+            <span class="af-var-label">
               {{ t(`admin.accounts.headerOverride.variables.${variable}.label`) }}
             </span>
           </span>
-          <span class="mt-0.5 block text-[11px] leading-4 text-gray-500 dark:text-gray-400">
+          <span class="sr-only">
             {{ t(`admin.accounts.headerOverride.variables.${variable}.desc`) }}
           </span>
         </span>
-        <svg class="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-gray-300 transition-colors group-hover:text-primary-500 dark:text-dark-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
       </button>
     </div>
 
-    <ul class="mt-2.5 space-y-1 text-[11px] leading-4 text-gray-500 dark:text-gray-400">
-      <li v-for="note in VARIABLE_NOTES" :key="note" class="flex gap-1.5">
-        <span class="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-gray-400 dark:bg-dark-300"></span>
+    <ul class="af-note mt-2 list-disc space-y-0.5 pl-4">
+      <li v-for="note in VARIABLE_NOTES" :key="note">
         <span>{{ t(`admin.accounts.headerOverride.variableNotes.${note}`) }}</span>
       </li>
     </ul>
   </div>
   <p
     v-else
-    class="flex items-start gap-1.5 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500 dark:bg-dark-700/40 dark:text-gray-400"
+    class="af-note flex items-start gap-1.5"
     data-testid="header-override-variables-unavailable"
   >
     <svg class="mt-0.5 h-3.5 w-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -154,12 +150,13 @@
     <HeaderOverrideJsonTools :rows="rows" @update:rows="emit('update:rows', $event)" />
   </div>
 
-  <p class="text-xs text-gray-500 dark:text-gray-400">
+  <p class="af-note">
     {{ t('admin.accounts.headerOverride.emptyValueHint') }}
   </p>
 </template>
 
 <script setup lang="ts">
+import '@/components/account/accountForm.css'
 import { computed, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createStableObjectKeyResolver } from '@/utils/stableObjectKey'

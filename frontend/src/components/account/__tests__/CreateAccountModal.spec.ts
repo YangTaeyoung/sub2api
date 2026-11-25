@@ -905,7 +905,7 @@ describe('CreateAccountModal OpenAI long-context billing', () => {
     // 也必须与其余 API-key 平台一样默认开启探测并传递开关。
     const wrapper = mountModal()
     await selectButtonByText(wrapper, 'Antigravity')
-    await selectButtonByText(wrapper, 'admin.accounts.types.antigravityApikey')
+    await selectButtonByText(wrapper, 'API Key')
     await wrapper.get('form#create-account-form input[type="text"]').setValue('antigravity relay')
     const baseInput = wrapper
       .findAll('input')

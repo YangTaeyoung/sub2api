@@ -18,7 +18,7 @@ export default {
     "required": "필수",
     "sending": "전송 중...",
     "tryAgain": "다시 시도해 주세요.",
-    "update": "업데이트",
+    "update": "저장",
     "confirm": "확인",
     "reset": "초기화",
     "search": "검색",

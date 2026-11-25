@@ -415,7 +415,7 @@ const apiKeyOptions = computed<SelectOption[]>(() => [
 ])
 const groupOptions = computed<SelectOption[]>(() => [
   { value: null, label: t('admin.usage.allGroups') },
-  ...groups.value.map((group) => ({ value: group.id, label: group.name })),
+  ...groups.value.map((group) => ({ value: group.id, label: group.name, platform: group.platform })),
 ])
 const modelOptions = computed<SelectOption[]>(() => [
   { value: null, label: t('admin.usage.allModels') },

@@ -5,10 +5,10 @@
     width="wide"
     @close="handleClose"
   >
-    <form id="bulk-edit-account-form" class="space-y-5" @submit.prevent="() => handleSubmit()">
+    <form id="bulk-edit-account-form" class="af-form" @submit.prevent="() => handleSubmit()">
       <!-- Info -->
-      <div class="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
-        <p class="text-sm text-blue-700 dark:text-blue-400">
+      <div class="af-note">
+        <p class="text-xs">
           <svg class="mr-1.5 inline h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               stroke-linecap="round"
@@ -22,8 +22,8 @@
       </div>
 
       <!-- Mixed platform warning -->
-      <div v-if="isMixedPlatform" class="rounded-lg bg-amber-50 p-4 dark:bg-amber-900/20">
-        <p class="text-sm text-amber-700 dark:text-amber-400">
+      <div v-if="isMixedPlatform" class="af-warn">
+        <p class="text-xs">
           <svg class="mr-1.5 inline h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
@@ -34,10 +34,10 @@
       <!-- OpenAI passthrough -->
       <div
         v-if="allOpenAIPassthroughCapable"
-        class="border-t border-gray-200 pt-4 dark:border-dark-600"
+        class="af-section"
       >
-        <div class="mb-3 flex items-center justify-between">
-          <div class="flex-1 pr-4">
+        <div class="af-row">
+          <div class="min-w-0">
             <label
               id="bulk-edit-openai-passthrough-label"
               class="input-label mb-0"
@@ -45,7 +45,7 @@
             >
               {{ t('admin.accounts.openai.oauthPassthrough') }}
             </label>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p class="input-hint">
               {{ t('admin.accounts.openai.oauthPassthroughDesc') }}
             </p>
           </div>
@@ -66,17 +66,13 @@
           <button
             id="bulk-edit-openai-passthrough-toggle"
             type="button"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-              openaiPassthroughEnabled ? 'bg-primary-600' : 'bg-gray-200 dark:bg-dark-600'
-            ]"
+            role="switch"
+              :aria-checked="openaiPassthroughEnabled"
+              :class="['switch', { 'switch-active': openaiPassthroughEnabled }]"
             @click="openaiPassthroughEnabled = !openaiPassthroughEnabled"
           >
             <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                openaiPassthroughEnabled ? 'translate-x-5' : 'translate-x-0'
-              ]"
+              class="switch-thumb"
             />
           </button>
         </div>
@@ -85,10 +81,10 @@
       <!-- OpenAI passthrough model filtering -->
       <div
         v-if="allOpenAIPassthroughCapable"
-        class="border-t border-gray-200 pt-4 dark:border-dark-600"
+        class="af-section"
       >
-        <div class="mb-3 flex items-center justify-between">
-          <div class="flex-1 pr-4">
+        <div class="af-row">
+          <div class="min-w-0">
             <label
               id="bulk-edit-openai-passthrough-model-filter-label"
               class="input-label mb-0"
@@ -96,7 +92,7 @@
             >
               {{ t('admin.accounts.openai.passthroughModelFilter') }}
             </label>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p class="input-hint">
               {{ t('admin.accounts.openai.passthroughModelFilterDesc') }}
             </p>
           </div>
@@ -130,10 +126,10 @@
       <!-- OpenAI Codex namespace 工具摊平（兼容开关，仅 OAuth） -->
       <div
         v-if="allOpenAIOAuthOnly"
-        class="border-t border-gray-200 pt-4 dark:border-dark-600"
+        class="af-section"
       >
-        <div class="mb-3 flex items-center justify-between">
-          <div class="flex-1 pr-4">
+        <div class="af-row">
+          <div class="min-w-0">
             <label
               id="bulk-edit-openai-flatten-namespaces-label"
               class="input-label mb-0"
@@ -141,7 +137,7 @@
             >
               {{ t('admin.accounts.openai.flattenNamespaces') }}
             </label>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p class="input-hint">
               {{ t('admin.accounts.openai.flattenNamespacesDesc') }}
             </p>
           </div>
@@ -162,17 +158,13 @@
           <button
             id="bulk-edit-openai-flatten-namespaces-toggle"
             type="button"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-              openaiFlattenNamespacesEnabled ? 'bg-primary-600' : 'bg-gray-200 dark:bg-dark-600'
-            ]"
+            role="switch"
+              :aria-checked="openaiFlattenNamespacesEnabled"
+              :class="['switch', { 'switch-active': openaiFlattenNamespacesEnabled }]"
             @click="openaiFlattenNamespacesEnabled = !openaiFlattenNamespacesEnabled"
           >
             <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                openaiFlattenNamespacesEnabled ? 'translate-x-5' : 'translate-x-0'
-              ]"
+              class="switch-thumb"
             />
           </button>
         </div>
@@ -181,7 +173,7 @@
       <!-- OpenAI API long-context billing -->
       <div
         v-if="allOpenAIPassthroughCapable"
-        class="border-t border-gray-200 pt-4 dark:border-dark-600"
+        class="af-section"
       >
         <div class="mb-3 flex items-center justify-between gap-4">
           <div class="flex-1">
@@ -192,7 +184,7 @@
             >
               {{ t('admin.accounts.openai.longContextBilling') }}
             </label>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p class="input-hint">
               {{ t('admin.accounts.openai.longContextBillingDesc') }}
             </p>
           </div>
@@ -216,22 +208,16 @@
             role="switch"
             :disabled="!enableOpenAILongContextBilling"
             :aria-checked="openAILongContextBillingEnabled"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-              openAILongContextBillingEnabled ? 'bg-primary-600' : 'bg-gray-200 dark:bg-dark-600'
-            ]"
+              :class="['switch', { 'switch-active': openAILongContextBillingEnabled }]"
             @click="openAILongContextBillingEnabled = !openAILongContextBillingEnabled"
           >
             <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                openAILongContextBillingEnabled ? 'translate-x-5' : 'translate-x-0'
-              ]"
+              class="switch-thumb"
             />
           </button>
         </div>
         <p
-          class="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-900/20 dark:text-amber-300"
+          class="mt-3 af-warn"
           data-testid="bulk-edit-openai-long-context-shadow-hint"
         >
           {{ t('admin.accounts.bulkEdit.longContextShadowHint') }}
@@ -241,7 +227,7 @@
       <!-- OpenAI images: size tier routing -->
       <div
         v-if="allOpenAIPassthroughCapable"
-        class="border-t border-gray-200 pt-4 dark:border-dark-600"
+        class="af-section"
       >
         <div class="mb-3 flex items-center justify-between gap-4">
           <label
@@ -276,8 +262,8 @@
       </div>
 
       <!-- Base URL (API Key only) -->
-      <div class="border-t border-gray-200 pt-4 dark:border-dark-600">
-        <div class="mb-3 flex items-center justify-between">
+      <div class="af-section">
+        <div class="af-row">
           <label
             id="bulk-edit-base-url-label"
             class="input-label mb-0"
@@ -314,8 +300,8 @@
       </div>
 
       <!-- Model restriction -->
-      <div class="border-t border-gray-200 pt-4 dark:border-dark-600">
-        <div class="mb-3 flex items-center justify-between">
+      <div class="af-section">
+        <div class="af-row">
           <label
             id="bulk-edit-model-restriction-label"
             class="input-label mb-0"
@@ -338,74 +324,37 @@
           role="group"
           aria-labelledby="bulk-edit-model-restriction-label"
         >
-          <div
-            v-if="isOpenAIModelRestrictionDisabled"
-            class="rounded-lg bg-amber-50 p-3 dark:bg-amber-900/20"
-          >
-            <p class="text-xs text-amber-700 dark:text-amber-400">
+          <p
+            v-if="isOpenAIModelRestrictionDisabled" class="af-warn">
               {{ t('admin.accounts.openai.modelRestrictionDisabledByPassthrough') }}
             </p>
-          </div>
 
           <template v-else>
             <!-- Mode Toggle -->
-            <div class="mb-4 flex gap-2">
+            <div class="af-choices mb-3" role="radiogroup" @keydown="handleChoiceGroupKeydown">
               <button
                 type="button"
-                :class="[
-                  'flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-all',
-                  modelRestrictionMode === 'whitelist'
-                    ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-600 dark:text-gray-400 dark:hover:bg-dark-500'
-                ]"
+                role="radio"
+                :aria-checked="modelRestrictionMode === 'whitelist'"
+                :class="['af-choice', { 'af-choice-on': modelRestrictionMode === 'whitelist' }]"
                 @click="modelRestrictionMode = 'whitelist'"
               >
-                <svg
-                  class="mr-1.5 inline h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
                 {{ t('admin.accounts.modelWhitelist') }}
               </button>
               <button
                 type="button"
-                :class="[
-                  'flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-all',
-                  modelRestrictionMode === 'mapping'
-                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-600 dark:text-gray-400 dark:hover:bg-dark-500'
-                ]"
+                role="radio"
+                :aria-checked="modelRestrictionMode === 'mapping'"
+                :class="['af-choice', { 'af-choice-on': modelRestrictionMode === 'mapping' }]"
                 @click="modelRestrictionMode = 'mapping'"
               >
-                <svg
-                  class="mr-1.5 inline h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                  />
-                </svg>
                 {{ t('admin.accounts.modelMapping') }}
               </button>
             </div>
 
             <!-- Whitelist Mode -->
             <div v-if="modelRestrictionMode === 'whitelist'">
-              <div class="mb-3 rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20">
-                <p class="text-xs text-blue-700 dark:text-blue-400">
+              <p class="mb-3 af-note">
                   <svg
                     class="mr-1 inline h-4 w-4"
                     fill="none"
@@ -421,7 +370,6 @@
                   </svg>
                   {{ t('admin.accounts.selectAllowedModels') }}
                 </p>
-              </div>
 
               <ModelWhitelistSelector
                 v-model="allowedModels"
@@ -429,7 +377,7 @@
                 :platforms="targetSelectedPlatforms"
               />
 
-              <p class="text-xs text-gray-500 dark:text-gray-400">
+              <p class="af-note">
                 {{ t('admin.accounts.selectedModels', { count: allowedModels.length }) }}
                 <span v-if="allowedModels.length === 0">{{
                   t('admin.accounts.supportsAllModels')
@@ -439,8 +387,7 @@
 
             <!-- Mapping Mode -->
             <div v-else>
-              <div class="mb-3 rounded-lg bg-purple-50 p-3 dark:bg-purple-900/20">
-                <p class="text-xs text-purple-700 dark:text-purple-400">
+              <p class="mb-3 af-note">
                   <svg
                     class="mr-1 inline h-4 w-4"
                     fill="none"
@@ -456,7 +403,6 @@
                   </svg>
                   {{ t('admin.accounts.mapRequestModels') }}
                 </p>
-              </div>
 
               <!-- Model Mapping List -->
               <div v-if="modelMappings.length > 0" class="mb-3 space-y-2">
@@ -472,7 +418,7 @@
                     :placeholder="t('admin.accounts.requestModel')"
                   />
                   <svg
-                    class="h-4 w-4 flex-shrink-0 text-gray-400"
+                    class="af-map-arrow"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -492,7 +438,7 @@
                   />
                   <button
                     type="button"
-                    class="rounded-lg p-2 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
+                    class="af-icon-btn af-icon-btn-danger"
                     @click="removeModelMapping(index)"
                   >
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -509,7 +455,8 @@
 
               <button
                 type="button"
-                class="mb-3 w-full rounded-lg border-2 border-dashed border-gray-300 px-4 py-2 text-gray-600 transition-colors hover:border-gray-400 hover:text-gray-700 dark:border-dark-500 dark:text-gray-400 dark:hover:border-dark-400 dark:hover:text-gray-300"
+                data-af-add
+              class="btn btn-secondary btn-sm mb-3"
                 @click="addModelMapping"
               >
                 <svg
@@ -534,7 +481,7 @@
                   v-for="preset in filteredPresets"
                   :key="preset.label"
                   type="button"
-                  :class="['rounded-lg px-3 py-1 text-xs transition-colors', preset.color]"
+                  class="af-chip"
                   @click="addPresetMapping(preset.from, preset.to)"
                 >
                   + {{ preset.label }}
@@ -546,8 +493,8 @@
       </div>
 
       <!-- Custom error codes -->
-      <div class="border-t border-gray-200 pt-4 dark:border-dark-600">
-        <div class="mb-3 flex items-center justify-between">
+      <div class="af-section">
+        <div class="af-row">
           <div>
             <label
               id="bulk-edit-custom-error-codes-label"
@@ -556,7 +503,7 @@
             >
               {{ t('admin.accounts.customErrorCodes') }}
             </label>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p class="input-hint">
               {{ t('admin.accounts.customErrorCodesHint') }}
             </p>
           </div>
@@ -570,12 +517,10 @@
         </div>
 
         <div v-if="enableCustomErrorCodes" id="bulk-edit-custom-error-codes-body" class="space-y-3">
-          <div class="rounded-lg bg-amber-50 p-3 dark:bg-amber-900/20">
-            <p class="text-xs text-amber-700 dark:text-amber-400">
+          <p class="af-warn">
               <Icon name="exclamationTriangle" size="sm" class="mr-1 inline" :stroke-width="2" />
               {{ t('admin.accounts.customErrorCodesWarning') }}
             </p>
-          </div>
 
           <!-- Error Code Buttons -->
           <div class="flex flex-wrap gap-2">
@@ -583,12 +528,8 @@
               v-for="code in commonErrorCodes"
               :key="code.value"
               type="button"
-              :class="[
-                'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
-                selectedErrorCodes.includes(code.value)
-                  ? 'bg-red-100 text-red-700 ring-1 ring-red-500 dark:bg-red-900/30 dark:text-red-400'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-600 dark:text-gray-400 dark:hover:bg-dark-500'
-              ]"
+              :aria-pressed="selectedErrorCodes.includes(code.value)"
+                :class="['af-chip', { 'af-chip-on': selectedErrorCodes.includes(code.value) }]"
               @click="toggleErrorCode(code.value)"
             >
               {{ code.value }} {{ code.label }}
@@ -625,18 +566,18 @@
             <span
               v-for="code in selectedErrorCodes.sort((a, b) => a - b)"
               :key="code"
-              class="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-sm font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400"
+              class="af-chip af-chip-on"
             >
               {{ code }}
               <button
                 type="button"
-                class="hover:text-red-900 dark:hover:text-red-300"
+                class="af-chip-x"
                 @click="removeErrorCode(code)"
               >
                 <Icon name="x" size="xs" class="h-3.5 w-3.5" :stroke-width="2" />
               </button>
             </span>
-            <span v-if="selectedErrorCodes.length === 0" class="text-xs text-gray-400">
+            <span v-if="selectedErrorCodes.length === 0" class="af-note">
               {{ t('admin.accounts.noneSelectedUsesDefault') }}
             </span>
           </div>
@@ -644,9 +585,9 @@
       </div>
 
       <!-- Intercept warmup requests (Anthropic only) -->
-      <div class="border-t border-gray-200 pt-4 dark:border-dark-600">
+      <div class="af-section">
         <div class="flex items-center justify-between">
-          <div class="flex-1 pr-4">
+          <div class="min-w-0">
             <label
               id="bulk-edit-intercept-warmup-label"
               class="input-label mb-0"
@@ -654,7 +595,7 @@
             >
               {{ t('admin.accounts.interceptWarmupRequests') }}
             </label>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p class="input-hint">
               {{ t('admin.accounts.interceptWarmupRequestsDesc') }}
             </p>
           </div>
@@ -669,26 +610,22 @@
         <div v-if="enableInterceptWarmup" id="bulk-edit-intercept-warmup-body" class="mt-3">
           <button
             type="button"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-              interceptWarmupRequests ? 'bg-primary-600' : 'bg-gray-200 dark:bg-dark-600'
-            ]"
+            role="switch"
+              :aria-checked="interceptWarmupRequests"
+              :class="['switch', { 'switch-active': interceptWarmupRequests }]"
             @click="interceptWarmupRequests = !interceptWarmupRequests"
           >
             <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                interceptWarmupRequests ? 'translate-x-5' : 'translate-x-0'
-              ]"
+              class="switch-thumb"
             />
           </button>
         </div>
       </div>
 
       <!-- Header Override (eligible API-key platforms + grok OAuth) -->
-      <div v-if="allHeaderOverrideCapable" class="border-t border-gray-200 pt-4 dark:border-dark-600">
+      <div v-if="allHeaderOverrideCapable" class="af-section">
         <div class="flex items-center justify-between">
-          <div class="flex-1 pr-4">
+          <div class="min-w-0">
             <label
               id="bulk-edit-header-override-label"
               class="input-label mb-0"
@@ -696,7 +633,7 @@
             >
               {{ t('admin.accounts.headerOverride.title') }}
             </label>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p class="input-hint">
               {{ t('admin.accounts.headerOverride.hint') }}
             </p>
           </div>
@@ -711,29 +648,23 @@
         <div v-if="enableHeaderOverride" id="bulk-edit-header-override-body" class="mt-3 space-y-3">
           <button
             type="button"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-              headerOverrideEnabled ? 'bg-primary-600' : 'bg-gray-200 dark:bg-dark-600'
-            ]"
+            role="switch"
+              :aria-checked="headerOverrideEnabled"
+              :class="['switch', { 'switch-active': headerOverrideEnabled }]"
             @click="headerOverrideEnabled = !headerOverrideEnabled"
           >
             <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                headerOverrideEnabled ? 'translate-x-5' : 'translate-x-0'
-              ]"
+              class="switch-thumb"
             />
           </button>
 
           <div v-if="headerOverrideEnabled" class="space-y-3">
-            <div class="rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20">
-              <p class="text-xs text-blue-700 dark:text-blue-400">
+            <p class="af-note">
                 <Icon name="exclamationCircle" size="sm" class="mr-1 inline" :stroke-width="2" />
                 {{ t('admin.accounts.headerOverride.info') }}
               </p>
-            </div>
 
-            <p class="text-xs text-amber-600 dark:text-amber-400">
+            <p class="af-note">
               {{ t('admin.accounts.headerOverride.bulkReplaceHint') }}
             </p>
 
@@ -743,15 +674,15 @@
               @update:rows="headerOverrideRows = $event"
             />
           </div>
-          <p v-else class="text-xs text-gray-500 dark:text-gray-400">
+          <p v-else class="af-note">
             {{ t('admin.accounts.headerOverride.bulkDisableHint') }}
           </p>
         </div>
       </div>
 
       <!-- Proxy -->
-      <div class="border-t border-gray-200 pt-4 dark:border-dark-600">
-        <div class="mb-3 flex items-center justify-between">
+      <div class="af-section">
+        <div class="af-row">
           <label
             id="bulk-edit-proxy-label"
             class="input-label mb-0"
@@ -777,9 +708,9 @@
       </div>
 
       <!-- Concurrency & Priority -->
-      <div class="grid grid-cols-2 gap-4 border-t border-gray-200 pt-4 dark:border-dark-600 lg:grid-cols-4">
+      <div class="grid grid-cols-2 gap-4 af-section lg:grid-cols-4">
         <div>
-          <div class="mb-3 flex items-center justify-between">
+          <div class="af-row">
             <label
               id="bulk-edit-concurrency-label"
               class="input-label mb-0"
@@ -808,7 +739,7 @@
           />
         </div>
         <div>
-          <div class="mb-3 flex items-center justify-between">
+          <div class="af-row">
             <label
               id="bulk-edit-load-factor-label"
               class="input-label mb-0"
@@ -838,7 +769,7 @@
           <p class="input-hint">{{ t('admin.accounts.loadFactorHint') }}</p>
         </div>
         <div>
-          <div class="mb-3 flex items-center justify-between">
+          <div class="af-row">
             <label
               id="bulk-edit-priority-label"
               class="input-label mb-0"
@@ -866,7 +797,7 @@
           />
         </div>
         <div>
-          <div class="mb-3 flex items-center justify-between">
+          <div class="af-row">
             <label
               id="bulk-edit-rate-multiplier-label"
               class="input-label mb-0"
@@ -906,8 +837,8 @@
       </div>
 
       <!-- Status -->
-      <div class="border-t border-gray-200 pt-4 dark:border-dark-600">
-        <div class="mb-3 flex items-center justify-between">
+      <div class="af-section">
+        <div class="af-row">
           <label
             id="bulk-edit-status-label"
             class="input-label mb-0"
@@ -933,8 +864,8 @@
       </div>
 
       <!-- OpenAI OAuth WS mode -->
-      <div v-if="allOpenAIOAuth" class="border-t border-gray-200 pt-4 dark:border-dark-600">
-        <div class="mb-3 flex items-center justify-between">
+      <div v-if="allOpenAIOAuth" class="af-section">
+        <div class="af-row">
           <label
             id="bulk-edit-openai-ws-mode-label"
             class="input-label mb-0"
@@ -954,10 +885,10 @@
           id="bulk-edit-openai-ws-mode"
           :class="!enableOpenAIWSMode && 'pointer-events-none opacity-50'"
         >
-          <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">
+          <p class="input-hint mb-3">
             {{ t('admin.accounts.openai.wsModeDesc') }}
           </p>
-          <p v-if="openAIWSModeHintKey" class="mb-3 text-xs text-gray-500 dark:text-gray-400">
+          <p v-if="openAIWSModeHintKey" class="input-hint mb-3">
             {{ t(openAIWSModeHintKey) }}
           </p>
           <Select
@@ -970,8 +901,8 @@
       </div>
 
       <!-- OpenAI OAuth Codex CLI only -->
-      <div v-if="allOpenAIOAuth" class="border-t border-gray-200 pt-4 dark:border-dark-600">
-        <div class="mb-3 flex items-center justify-between">
+      <div v-if="allOpenAIOAuth" class="af-section">
+        <div class="af-row">
           <label
             id="bulk-edit-openai-codex-cli-only-label"
             class="input-label mb-0"
@@ -991,31 +922,27 @@
           id="bulk-edit-openai-codex-cli-only"
           :class="!enableCodexCLIOnly && 'pointer-events-none opacity-50'"
         >
-          <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">
+          <p class="input-hint mb-3">
             {{ t('admin.accounts.openai.codexCLIOnlyDesc') }}
           </p>
           <button
             id="bulk-edit-openai-codex-cli-only-toggle"
             type="button"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-              codexCLIOnlyEnabled ? 'bg-primary-600' : 'bg-gray-200 dark:bg-dark-600'
-            ]"
+            role="switch"
+              :aria-checked="codexCLIOnlyEnabled"
+              :class="['switch', { 'switch-active': codexCLIOnlyEnabled }]"
             @click="codexCLIOnlyEnabled = !codexCLIOnlyEnabled"
           >
             <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                codexCLIOnlyEnabled ? 'translate-x-5' : 'translate-x-0'
-              ]"
+              class="switch-thumb"
             />
           </button>
         </div>
       </div>
 
       <!-- OpenAI OAuth: Codex app-server -->
-      <div v-if="allOpenAIOAuth" class="border-t border-gray-200 pt-4 dark:border-dark-600">
-        <div class="mb-3 flex items-center justify-between">
+      <div v-if="allOpenAIOAuth" class="af-section">
+        <div class="af-row">
           <label
             id="bulk-edit-openai-codex-app-server-label"
             class="input-label mb-0"
@@ -1035,31 +962,27 @@
           id="bulk-edit-openai-codex-app-server"
           :class="!enableCodexCLIOnlyAppServer && 'pointer-events-none opacity-50'"
         >
-          <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">
+          <p class="input-hint mb-3">
             {{ t('admin.accounts.openai.codexCLIOnlyAppServerDesc') }}
           </p>
           <button
             id="bulk-edit-openai-codex-app-server-toggle"
             type="button"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-              codexCLIOnlyAppServerEnabled ? 'bg-primary-600' : 'bg-gray-200 dark:bg-dark-600'
-            ]"
+            role="switch"
+              :aria-checked="codexCLIOnlyAppServerEnabled"
+              :class="['switch', { 'switch-active': codexCLIOnlyAppServerEnabled }]"
             @click="codexCLIOnlyAppServerEnabled = !codexCLIOnlyAppServerEnabled"
           >
             <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                codexCLIOnlyAppServerEnabled ? 'translate-x-5' : 'translate-x-0'
-              ]"
+              class="switch-thumb"
             />
           </button>
         </div>
       </div>
 
       <!-- Codex 指纹收敛模式（仅 OpenAI OAuth） -->
-      <div v-if="allOpenAIOAuth" class="border-t border-gray-200 pt-4 dark:border-dark-600">
-        <div class="mb-3 flex items-center justify-between">
+      <div v-if="allOpenAIOAuth" class="af-section">
+        <div class="af-row">
           <label class="input-label mb-0">{{ t('admin.accounts.openai.codexFingerprintMode') }}</label>
           <input
             id="bulk-edit-openai-codex-fingerprint-mode-enabled"
@@ -1069,7 +992,7 @@
           />
         </div>
         <div :class="!enableCodexFingerprintMode && 'pointer-events-none opacity-50'">
-          <p class="mb-2 text-xs text-gray-500 dark:text-gray-400">
+          <p class="input-hint mb-2">
             {{ t('admin.accounts.openai.codexFingerprintModeDesc') }}
           </p>
           <Select v-model="codexFingerprintMode" data-testid="bulk-codex-fingerprint-mode-select" :options="codexFingerprintModeOptions" />
@@ -1077,9 +1000,9 @@
       </div>
 
       <!-- Upstream billing auto probe (any API-key platform) -->
-      <div v-if="allBillingProbeCapable" class="border-t border-gray-200 pt-4 dark:border-dark-600">
-        <div class="mb-3 flex items-center justify-between">
-          <div class="flex-1 pr-4">
+      <div v-if="allBillingProbeCapable" class="af-section">
+        <div class="af-row">
+          <div class="min-w-0">
             <label
               id="bulk-edit-upstream-billing-auto-probe-label"
               class="input-label mb-0"
@@ -1087,7 +1010,7 @@
             >
               {{ t('admin.accounts.upstreamBilling.autoProbe') }}
             </label>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p class="input-hint">
               {{ t('admin.accounts.upstreamBilling.autoProbeHint') }}
             </p>
           </div>
@@ -1116,7 +1039,7 @@
       </div>
 
       <!-- OpenAI API Key endpoint capabilities -->
-      <div v-if="allOpenAIAPIKey" class="border-t border-gray-200 pt-4 dark:border-dark-600">
+      <div v-if="allOpenAIAPIKey" class="af-section">
         <div class="mb-3 flex items-center justify-between gap-4">
           <div class="flex-1">
             <label
@@ -1126,7 +1049,7 @@
             >
               {{ t('admin.accounts.openai.endpointCapabilities') }}
             </label>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p class="input-hint">
               {{ t('admin.accounts.openai.endpointCapabilitiesDesc') }}
             </p>
           </div>
@@ -1148,7 +1071,7 @@
             <label
               v-for="option in openAIEndpointCapabilityOptions"
               :key="option.value"
-              class="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-dark-600"
+              class="af-check"
             >
               <input
                 type="checkbox"
@@ -1158,14 +1081,14 @@
                 :checked="openAIEndpointCapabilities.includes(option.value)"
                 @change="toggleOpenAIEndpointCapability(option.value, $event)"
               />
-              <span class="text-gray-700 dark:text-gray-200">{{ option.label }}</span>
+              <span class="af-primary">{{ option.label }}</span>
             </label>
           </div>
         </div>
       </div>
 
       <!-- OpenAI API Key Responses route -->
-      <div v-if="allOpenAIAPIKey" class="border-t border-gray-200 pt-4 dark:border-dark-600">
+      <div v-if="allOpenAIAPIKey" class="af-section">
         <div class="mb-3 flex items-center justify-between gap-4">
           <div class="flex-1">
             <label
@@ -1175,7 +1098,7 @@
             >
               {{ t('admin.accounts.openai.responsesMode') }}
             </label>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p class="input-hint">
               {{ t('admin.accounts.openai.responsesModeDesc') }}
             </p>
           </div>
@@ -1202,7 +1125,7 @@
           />
           <p
             v-if="enableOpenAIEndpointCapabilities && !openAITextGenerationCapabilityEnabled"
-            class="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-900/20 dark:text-amber-300"
+            class="mt-2 af-warn"
             data-testid="bulk-edit-openai-responses-mode-not-applicable"
           >
             {{ t('admin.accounts.openai.responsesModeTextDisabledHint') }}
@@ -1211,8 +1134,8 @@
       </div>
 
       <!-- OpenAI API Key WS mode -->
-      <div v-if="allOpenAIAPIKey" class="border-t border-gray-200 pt-4 dark:border-dark-600">
-        <div class="mb-3 flex items-center justify-between">
+      <div v-if="allOpenAIAPIKey" class="af-section">
+        <div class="af-row">
           <label
             id="bulk-edit-openai-apikey-ws-mode-label"
             class="input-label mb-0"
@@ -1232,10 +1155,10 @@
           id="bulk-edit-openai-apikey-ws-mode"
           :class="!enableOpenAIAPIKeyWSMode && 'pointer-events-none opacity-50'"
         >
-          <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">
+          <p class="input-hint mb-3">
             {{ t('admin.accounts.openai.wsModeDesc') }}
           </p>
-          <p v-if="openAIAPIKeyWSModeHintKey" class="mb-3 text-xs text-gray-500 dark:text-gray-400">
+          <p v-if="openAIAPIKeyWSModeHintKey" class="input-hint mb-3">
             {{ t(openAIAPIKeyWSModeHintKey) }}
           </p>
           <Select
@@ -1248,9 +1171,9 @@
       </div>
 
       <!-- OpenAI Compact mode -->
-      <div v-if="allOpenAIPassthroughCapable" class="border-t border-gray-200 pt-4 dark:border-dark-600">
-        <div class="mb-3 flex items-center justify-between">
-          <div class="flex-1 pr-4">
+      <div v-if="allOpenAIPassthroughCapable" class="af-section">
+        <div class="af-row">
+          <div class="min-w-0">
             <label
               id="bulk-edit-openai-compact-mode-label"
               class="input-label mb-0"
@@ -1258,7 +1181,7 @@
             >
               {{ t('admin.accounts.openai.compactMode') }}
             </label>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p class="input-hint">
               {{ t('admin.accounts.openai.compactModeDesc') }}
             </p>
           </div>
@@ -1284,9 +1207,9 @@
       </div>
 
       <!-- OpenAI Compact model mapping -->
-      <div v-if="allOpenAIPassthroughCapable" class="border-t border-gray-200 pt-4 dark:border-dark-600">
-        <div class="mb-3 flex items-center justify-between">
-          <div class="flex-1 pr-4">
+      <div v-if="allOpenAIPassthroughCapable" class="af-section">
+        <div class="af-row">
+          <div class="min-w-0">
             <label
               id="bulk-edit-openai-compact-model-mapping-label"
               class="input-label mb-0"
@@ -1294,7 +1217,7 @@
             >
               {{ t('admin.accounts.openai.compactModelMapping') }}
             </label>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p class="input-hint">
               {{ t('admin.accounts.openai.compactModelMappingDesc') }}
             </p>
           </div>
@@ -1323,7 +1246,7 @@
                 :placeholder="t('admin.accounts.fromModel')"
                 data-testid="bulk-edit-openai-compact-model-mapping-input"
               />
-              <span class="text-gray-400">→</span>
+              <span class="af-muted">→</span>
               <input
                 v-model="mapping.to"
                 type="text"
@@ -1333,7 +1256,7 @@
               />
               <button
                 type="button"
-                class="rounded-lg p-2 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
+                class="af-icon-btn af-icon-btn-danger"
                 @click="removeOpenAICompactModelMapping(index)"
               >
                 <Icon name="trash" size="sm" />
@@ -1342,7 +1265,8 @@
           </div>
           <button
             type="button"
-            class="mb-3 w-full rounded-lg border-2 border-dashed border-gray-300 px-4 py-2 text-gray-600 transition-colors hover:border-gray-400 hover:text-gray-700 dark:border-dark-500 dark:text-gray-400 dark:hover:border-dark-400 dark:hover:text-gray-300"
+            data-af-add
+              class="btn btn-secondary btn-sm mb-3"
             data-testid="bulk-edit-openai-compact-model-mapping-add"
             @click="addOpenAICompactModelMapping"
           >
@@ -1352,8 +1276,8 @@
       </div>
 
       <!-- RPM Limit (仅全部为 Anthropic OAuth/SetupToken 时显示) -->
-      <div v-if="allAnthropicOAuthOrSetupToken" class="border-t border-gray-200 pt-4 dark:border-dark-600">
-        <div class="mb-3 flex items-center justify-between">
+      <div v-if="allAnthropicOAuthOrSetupToken" class="af-section">
+        <div class="af-row">
           <label
             id="bulk-edit-rpm-limit-label"
             class="input-label mb-0"
@@ -1376,21 +1300,17 @@
           role="group"
           aria-labelledby="bulk-edit-rpm-limit-label"
         >
-          <div class="mb-3 flex items-center justify-between">
-            <span class="text-sm text-gray-700 dark:text-gray-300">{{ t('admin.accounts.quotaControl.rpmLimit.hint') }}</span>
+          <div class="af-row">
+            <span class="text-sm af-primary">{{ t('admin.accounts.quotaControl.rpmLimit.hint') }}</span>
             <button
               type="button"
               @click="rpmLimitEnabled = !rpmLimitEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-                rpmLimitEnabled ? 'bg-primary-600' : 'bg-gray-200 dark:bg-dark-600'
-              ]"
+              role="switch"
+              :aria-checked="rpmLimitEnabled"
+              :class="['switch', { 'switch-active': rpmLimitEnabled }]"
             >
               <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  rpmLimitEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
+                class="switch-thumb"
               />
             </button>
           </div>
@@ -1416,24 +1336,18 @@
                 <button
                   type="button"
                   @click="bulkRpmStrategy = 'tiered'"
-                  :class="[
-                    'flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-all',
-                    bulkRpmStrategy === 'tiered'
-                      ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-600 dark:text-gray-400 dark:hover:bg-dark-500'
-                  ]"
+                  role="radio"
+                :aria-checked="bulkRpmStrategy === 'tiered'"
+                :class="['af-choice', { 'af-choice-on': bulkRpmStrategy === 'tiered' }]"
                 >
                   {{ t('admin.accounts.quotaControl.rpmLimit.strategyTiered') }}
                 </button>
                 <button
                   type="button"
                   @click="bulkRpmStrategy = 'sticky_exempt'"
-                  :class="[
-                    'flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-all',
-                    bulkRpmStrategy === 'sticky_exempt'
-                      ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-600 dark:text-gray-400 dark:hover:bg-dark-500'
-                  ]"
+                  role="radio"
+                :aria-checked="bulkRpmStrategy === 'sticky_exempt'"
+                :class="['af-choice', { 'af-choice-on': bulkRpmStrategy === 'sticky_exempt' }]"
                 >
                   {{ t('admin.accounts.quotaControl.rpmLimit.strategyStickyExempt') }}
                 </button>
@@ -1459,18 +1373,13 @@
         <!-- 用户消息限速模式（独立于 RPM 开关，始终可见） -->
         <div class="mt-4">
           <label class="input-label">{{ t('admin.accounts.quotaControl.rpmLimit.userMsgQueue') }}</label>
-          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 mb-2">
+          <p class="input-hint mb-2">
             {{ t('admin.accounts.quotaControl.rpmLimit.userMsgQueueHint') }}
           </p>
           <div class="flex space-x-2">
             <button type="button" v-for="opt in umqModeOptions" :key="opt.value"
               @click="userMsgQueueMode = userMsgQueueMode === opt.value ? null : opt.value"
-              :class="[
-                'px-3 py-1.5 text-sm rounded-md border transition-colors',
-                userMsgQueueMode === opt.value
-                  ? 'bg-primary-600 text-white border-primary-600'
-                  : 'bg-white dark:bg-dark-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-dark-500 hover:bg-gray-50 dark:hover:bg-dark-600'
-              ]">
+              role="radio" :aria-checked="userMsgQueueMode === opt.value" :class="['af-choice', { 'af-choice-on': userMsgQueueMode === opt.value }]">
               {{ opt.label }}
             </button>
           </div>
@@ -1478,8 +1387,8 @@
       </div>
 
       <!-- Groups -->
-      <div class="border-t border-gray-200 pt-4 dark:border-dark-600">
-        <div class="mb-3 flex items-center justify-between">
+      <div class="af-section">
+        <div class="af-row">
           <label
             id="bulk-edit-groups-label"
             class="input-label mb-0"
@@ -1557,6 +1466,8 @@
 </template>
 
 <script setup lang="ts">
+import '@/components/account/accountForm.css'
+import { handleChoiceGroupKeydown } from '@/components/account/choiceGroupKeys'
 import { ref, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

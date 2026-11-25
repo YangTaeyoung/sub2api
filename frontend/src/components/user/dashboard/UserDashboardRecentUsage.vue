@@ -14,7 +14,7 @@
       <ul class="recent-list">
         <li v-for="log in data" :key="log.id">
           <div class="recent-main">
-            <p class="recent-model">{{ log.model }}</p>
+            <p class="recent-model" :title="log.model">{{ formatModelDisplayName(log.model) }}</p>
             <p class="recent-meta">{{ formatDateTime(log.created_at) }}</p>
           </div>
           <div class="recent-figures">
@@ -35,6 +35,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatModelDisplayName } from '@/utils/modelDisplayName'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getIntlLocale } from '@/i18n'

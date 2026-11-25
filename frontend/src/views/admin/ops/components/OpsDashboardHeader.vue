@@ -136,7 +136,7 @@ const queryModeOptions = computed(() => [
 
 const groupOptions = computed(() => {
   const filtered = props.platform ? groups.value.filter((g) => g.platform === props.platform) : groups.value
-  return [{ value: null, label: t('common.all') }, ...filtered.map((g) => ({ value: g.id, label: g.name }))]
+  return [{ value: null, label: t('common.all') }, ...filtered.map((g) => ({ value: g.id, label: g.name, platform: g.platform }))]
 })
 
 watch(

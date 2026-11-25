@@ -89,14 +89,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { GroupPlatform } from '@/types'
+import { platformIconClass } from '@/utils/platformColors'
 
 interface Props {
   platform?: GroupPlatform
   size?: 'xs' | 'sm' | 'md' | 'lg'
+  mono?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  size: 'sm'
+  size: 'sm',
+  mono: false
 })
 
 const sizeClass = computed(() => {
@@ -106,6 +109,7 @@ const sizeClass = computed(() => {
     md: 'w-4 h-4',
     lg: 'w-5 h-5'
   }
-  return sizes[props.size] + ' flex-shrink-0'
+  const color = props.mono || !props.platform ? '' : ' ' + platformIconClass(props.platform)
+  return sizes[props.size] + ' flex-shrink-0' + color
 })
 </script>

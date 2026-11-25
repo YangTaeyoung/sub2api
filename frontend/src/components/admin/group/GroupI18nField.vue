@@ -6,16 +6,16 @@
         <button
           type="button"
           data-testid="group-i18n-menu"
-          class="flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium transition-colors"
+          class="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs transition-colors"
           :class="
             activeLocale
-              ? 'bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400'
-              : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-dark-400 dark:hover:bg-dark-700 dark:hover:text-gray-200'
+              ? 'bg-[var(--accent-soft)] text-[var(--accent-text)]'
+              : 'text-[var(--text-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]'
           "
           :aria-expanded="menuOpen"
           @click="menuOpen = !menuOpen"
         >
-          <Icon name="globe" size="sm" />
+          <Icon name="globe" size="xs" />
           <span>{{ activeLabel }}</span>
           <Icon
             name="chevronDown"
