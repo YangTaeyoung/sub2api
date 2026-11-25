@@ -1013,6 +1013,7 @@ export default {
 
   // Pagination
   pagination: {
+    summary: '{from}–{to} of {total}',
     showing: 'Showing',
     to: 'to',
     of: 'of',
@@ -1032,6 +1033,7 @@ export default {
   errors: {
     somethingWentWrong: 'Something went wrong',
     pageNotFound: 'Page not found',
+    pageNotFoundDescription: 'This page does not exist or has been moved.',
     unauthorized: 'Unauthorized',
     forbidden: 'Forbidden',
     serverError: 'Server error',

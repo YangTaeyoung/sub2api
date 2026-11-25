@@ -1,78 +1,69 @@
 <template>
-  <div :class="props.embedded ? 'space-y-4' : 'card'">
+  <div :class="props.embedded ? '' : 'card'">
     <div
       v-if="!props.embedded"
-      class="border-b border-gray-100 px-6 py-4 dark:border-dark-700"
+      class="border-b border-[var(--border-default)] px-6 py-4"
     >
-      <h2 class="text-lg font-medium text-gray-900 dark:text-white">
+      <h2 class="text-sm font-semibold text-[var(--text-primary)]">
         {{ t('profile.avatar.title') }}
       </h2>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      <p class="mt-1 text-sm text-[var(--text-muted)]">
         {{ t('profile.avatar.description') }}
       </p>
     </div>
 
-    <div :class="props.embedded ? 'space-y-3' : 'flex flex-col gap-5 px-6 py-6 sm:flex-row sm:items-start'">
-      <div
-        :class="props.embedded
-          ? 'flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 text-xl font-bold text-white shadow-lg shadow-primary-500/20'
-          : 'flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 text-3xl font-bold text-white shadow-lg shadow-primary-500/20'"
-      >
-        <img
-          v-if="avatarPreviewUrl"
-          data-testid="profile-avatar-preview"
-          :src="avatarPreviewUrl"
-          :alt="displayName"
-          class="h-full w-full object-cover"
-        >
-        <span v-else>{{ avatarInitial }}</span>
+    <div :class="props.embedded ? 'space-y-3' : 'space-y-3 px-6 py-5'">
+      <div class="space-y-1">
+        <p class="text-sm font-medium text-[var(--text-primary)]">
+          {{ props.embedded ? t('profile.avatar.title') : displayName }}
+        </p>
+        <p class="text-sm text-[var(--text-muted)]">
+          {{ t('profile.avatar.uploadHint') }}
+        </p>
       </div>
 
-      <div :class="props.embedded ? 'space-y-3' : 'min-w-0 flex-1 space-y-4'">
-        <div class="space-y-1">
-          <p v-if="props.embedded" class="text-sm font-semibold text-gray-900 dark:text-white">
-            {{ t('profile.avatar.title') }}
-          </p>
-          <p v-else class="text-sm font-medium text-gray-900 dark:text-white">
-            {{ displayName }}
-          </p>
-          <p class="text-sm text-gray-500 dark:text-gray-400">
-            {{ t('profile.avatar.uploadHint') }}
-          </p>
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="avatar-preview">
+          <img
+            v-if="avatarPreviewUrl"
+            data-testid="profile-avatar-preview"
+            :src="avatarPreviewUrl"
+            :alt="displayName"
+            class="h-full w-full object-cover"
+          >
+          <span v-else>{{ avatarInitial }}</span>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3">
-          <label class="btn btn-secondary btn-sm cursor-pointer">
-            <input
-              data-testid="profile-avatar-file-input"
-              type="file"
-              accept="image/*"
-              class="hidden"
-              @change="handleAvatarFileChange"
-            >
-            {{ t('profile.avatar.uploadAction') }}
-          </label>
-
-          <button
-            data-testid="profile-avatar-save"
-            type="button"
-            class="btn btn-primary btn-sm"
-            :disabled="avatarSaving || !avatarDraft"
-            @click="handleAvatarSave"
+        <label class="btn btn-secondary btn-sm cursor-pointer">
+          <input
+            data-testid="profile-avatar-file-input"
+            type="file"
+            accept="image/*"
+            class="hidden"
+            @change="handleAvatarFileChange"
           >
-            {{ t('common.save') }}
-          </button>
+          {{ t('profile.avatar.uploadAction') }}
+        </label>
 
-          <button
-            data-testid="profile-avatar-delete"
-            type="button"
-            class="btn btn-secondary btn-sm"
-            :disabled="avatarSaving"
-            @click="handleAvatarDelete"
-          >
-            {{ t('common.delete') }}
-          </button>
-        </div>
+        <button
+          data-testid="profile-avatar-save"
+          type="button"
+          class="btn btn-primary btn-sm"
+          :disabled="avatarSaving || !avatarDraft"
+          @click="handleAvatarSave"
+        >
+          {{ t('common.save') }}
+        </button>
+
+        <button
+          data-testid="profile-avatar-delete"
+          type="button"
+          class="btn btn-secondary btn-sm"
+          :disabled="avatarSaving"
+          @click="handleAvatarDelete"
+        >
+          {{ t('common.delete') }}
+        </button>
       </div>
     </div>
   </div>
@@ -268,3 +259,21 @@ async function handleAvatarDelete() {
   }
 }
 </script>
+
+<style scoped>
+.avatar-preview {
+  display: flex;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--surface-hover);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+</style>

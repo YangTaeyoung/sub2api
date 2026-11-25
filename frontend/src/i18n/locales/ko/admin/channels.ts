@@ -614,7 +614,7 @@ export default {
     "createFirstMonitor": "첫 모니터를 만들어 채널 가용성을 추적하세요",
     "advanced": {
       "section": "고급 설정(선택 사항)",
-      "sectionHint": "업스트림의 클라이언트 감지(예: \"Claude Code 클라이언트만 허용\")를 우회하도록 요청 헤더와 본문을 맞춤 설정합니다.",
+      "sectionHint": "업스트림의 클라이언트 감지(예: \"Claude Code 클라이언트만 허용\")를 우회하도록 요청 헤더와 본문을 직접 지정합니다.",
       "headers": "맞춤 요청 헤더",
       "headersPlaceholder": "User-Agent: claude-cli/1.0.83 (external, cli)\nx-app: cli\nanthropic-beta: claude-code-20250219",
       "headerNamePlaceholder": "헤더 이름",

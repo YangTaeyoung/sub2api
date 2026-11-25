@@ -1,37 +1,27 @@
 <template>
-  <div :class="props.embedded ? 'space-y-4' : 'card overflow-hidden'">
-    <div
-      v-if="!props.embedded"
-      class="border-b border-gray-100 px-6 py-4 dark:border-dark-700"
-    >
-      <h2 class="text-lg font-medium text-gray-900 dark:text-white">
+  <div :class="props.embedded ? '' : 'card overflow-hidden'">
+    <div class="border-b border-[var(--border-default)] px-4 py-4 sm:px-6">
+      <component
+        :is="props.embedded ? 'h3' : 'h2'"
+        class="text-sm font-semibold text-[var(--text-primary)]"
+      >
         {{ t('profile.authBindings.title') }}
-      </h2>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      </component>
+      <p class="mt-1 text-sm text-[var(--text-muted)]">
         {{ t('profile.authBindings.description') }}
       </p>
     </div>
 
-    <div :class="props.embedded ? 'space-y-4' : 'divide-y divide-gray-100 dark:divide-dark-700'">
-      <div v-if="props.embedded">
-        <p class="text-sm font-semibold text-gray-900 dark:text-white">
-          {{ t('profile.authBindings.title') }}
-        </p>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('profile.authBindings.description') }}
-        </p>
-      </div>
-
+    <div class="divide-y divide-[var(--border-default)]">
       <div
         v-for="item in providerItems"
         :key="item.provider"
-        :class="rowClass"
+        class="px-4 py-4 sm:px-6"
       >
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div class="flex min-w-0 flex-1 items-start gap-4">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div class="flex min-w-0 flex-1 items-start gap-3">
             <div
-              :class="providerIconClass(item.provider)"
-              class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-sm font-semibold"
+              class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-[var(--border-default)] bg-[var(--surface-hover)] text-xs font-semibold text-[var(--text-secondary)]"
             >
               <Icon
                 v-if="item.provider === 'email'"
@@ -42,11 +32,11 @@
               <span v-else>{{ providerInitial(item.provider) }}</span>
             </div>
 
-            <div class="min-w-0 flex-1 space-y-3">
-              <div class="flex flex-wrap items-center gap-2">
-                <h3 class="font-medium text-gray-900 dark:text-white">
+            <div class="min-w-0 flex-1 space-y-2">
+              <div class="flex min-h-7 flex-wrap items-center gap-2">
+                <p class="text-sm font-medium text-[var(--text-primary)]">
                   {{ item.label }}
-                </h3>
+                </p>
                 <span
                   :data-testid="`profile-binding-${item.provider}-status`"
                   :class="['badge', item.bound ? 'badge-success' : 'badge-gray']"
@@ -61,18 +51,18 @@
 
               <p
                 v-if="providerSummary(item.provider)"
-                class="text-sm text-gray-600 dark:text-gray-300"
+                class="text-sm text-[var(--text-secondary)]"
               >
                 {{ providerSummary(item.provider) }}
               </p>
 
               <div
                 v-if="hasBindingDetails(item.provider, item.details)"
-                class="grid gap-1 text-sm text-gray-500 dark:text-gray-400"
+                class="grid gap-1 text-sm text-[var(--text-muted)]"
               >
                 <p
                   v-if="item.provider !== 'email' && item.details?.display_name"
-                  class="font-medium text-gray-700 dark:text-gray-200"
+                  class="font-medium text-[var(--text-secondary)]"
                 >
                   {{ item.details.display_name }}
                 </p>
@@ -151,7 +141,7 @@
             </div>
           </div>
 
-          <div class="flex shrink-0 flex-wrap items-center gap-3">
+          <div class="flex shrink-0 flex-wrap items-center gap-2 pl-10 empty:hidden sm:pl-0">
             <button
               v-if="item.provider === 'email' && compact"
               data-testid="profile-binding-email-toggle"
@@ -291,13 +281,6 @@ watch(
 
 const currentUser = computed(() => localUser.value ?? props.user)
 const compact = computed(() => props.compact)
-const rowClass = computed(() =>
-  props.embedded
-    ? compact.value
-      ? 'rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-dark-700 dark:bg-dark-900/40'
-      : 'rounded-2xl border border-gray-100 bg-gray-50/70 p-4 dark:border-dark-700 dark:bg-dark-900/30'
-    : 'px-6 py-5'
-)
 const emailBound = computed(() => getBindingStatus('email'))
 const showEmailForm = computed(() => !compact.value || isEmailFormExpanded.value)
 const emailPasswordPlaceholder = computed(() =>
@@ -496,22 +479,6 @@ function providerInitial(provider: UserAuthProvider): string {
     return 'O'
   }
   return 'E'
-}
-
-function providerIconClass(provider: UserAuthProvider): string {
-  if (provider === 'linuxdo') {
-    return 'bg-orange-100 text-orange-600 dark:bg-orange-900/20 dark:text-orange-300'
-  }
-  if (provider === 'dingtalk') {
-    return 'bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-300'
-  }
-  if (provider === 'wechat') {
-    return 'bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-300'
-  }
-  if (provider === 'oidc') {
-    return 'bg-sky-100 text-sky-600 dark:bg-sky-900/20 dark:text-sky-300'
-  }
-  return 'bg-primary-100 text-primary-600 dark:bg-primary-900/20 dark:text-primary-300'
 }
 
 function providerSummary(provider: UserAuthProvider): string {

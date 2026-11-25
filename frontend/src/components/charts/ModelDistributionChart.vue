@@ -1,5 +1,23 @@
 <template>
-  <div class="card p-4 distribution-panel" :class="{ 'distribution-compact': !showChart }">
+  <DistributionRankPanel
+    v-if="useRankPanel"
+    :title="t('admin.dashboard.modelDistribution')"
+    :name-label="t('admin.dashboard.model')"
+    :rows="rankRows"
+    :metric="metric"
+    :loading="loading"
+    :show-metric-toggle="showMetricToggle"
+    :show-account-cost="showAccountCost"
+    :source-options="showSourceToggle ? sourceOptions : []"
+    :source="source"
+    :expanded-key="expandedKey"
+    :breakdown-items="breakdownItems"
+    :breakdown-loading="breakdownLoading"
+    @update:metric="emit('update:metric', $event)"
+    @update:source="emit('update:source', $event as ModelSource)"
+    @toggle="toggleBreakdown('model', $event.slice('model-'.length))"
+  />
+  <div v-else class="card p-4 distribution-panel" :class="{ 'distribution-compact': !showChart }">
     <div class="mb-4 flex items-center justify-between gap-3">
       <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
         {{ !enableRankingView || activeView === 'model_distribution'
@@ -114,12 +132,9 @@
       <LoadingSpinner />
     </div>
     <div
-      v-else-if="activeView === 'model_distribution' && displayModelStats.length > 0 && chartData"
+      v-else-if="activeView === 'model_distribution' && displayModelStats.length > 0"
       class="flex flex-col items-center gap-4 sm:flex-row sm:gap-6"
     >
-      <div v-if="showChart" class="h-40 w-40 shrink-0">
-        <Doughnut :data="chartData" :options="doughnutOptions" />
-      </div>
       <div class="distribution-table w-full min-w-0 flex-1 overflow-auto">
         <table class="w-full text-xs">
           <thead>
@@ -206,10 +221,7 @@
     >
       {{ t('admin.dashboard.failedToLoad') }}
     </div>
-    <div v-else-if="rankingDisplayItems.length > 0 && rankingChartData" class="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
-      <div v-if="showChart" class="h-40 w-40 shrink-0">
-        <Doughnut :data="rankingChartData" :options="rankingDoughnutOptions" />
-      </div>
+    <div v-else-if="rankingDisplayItems.length > 0" class="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
       <div class="distribution-table w-full min-w-0 flex-1 overflow-auto">
         <table class="w-full text-xs">
           <thead>
@@ -276,15 +288,11 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
-import { Doughnut } from 'vue-chartjs'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
-import { useChartTheme } from '@/composables/useChartTheme'
+import DistributionRankPanel, { type DistributionRankRow } from './DistributionRankPanel.vue'
 import UserBreakdownSubTable from './UserBreakdownSubTable.vue'
 import type { ModelStat, UserSpendingRankingItem, UserBreakdownItem } from '@/types'
 import { getUserBreakdown } from '@/api/admin/dashboard'
-
-ChartJS.register(ArcElement, Tooltip, Legend)
 
 const { t } = useI18n()
 
@@ -375,8 +383,6 @@ const showAccountCost = computed(() => props.showAccountCost)
 const distributionColspan = computed(() => !props.showChart ? 4 : showAccountCost.value ? 6 : 5)
 const activeView = ref<'model_distribution' | 'spending_ranking'>('model_distribution')
 
-const { colors: themeColors, seriesColors: chartColors, fontFamily: chartFontFamily } = useChartTheme()
-
 const displayModelStats = computed(() => {
   const sourceStats = props.source === 'upstream'
     ? props.upstreamModelStats
@@ -398,49 +404,25 @@ const metricContribution = (model: ModelStat): string => {
     : 0
   return `${Number(percentage.toFixed(4))}%`
 }
+const useRankPanel = computed(() => props.showChart && !props.enableRankingView && !props.modelUsageLinks)
+const sourceOptions = computed(() => [
+  { value: 'requested', label: t('usage.requestedModel') },
+  { value: 'upstream', label: t('usage.upstreamModel') },
+  { value: 'mapping', label: t('usage.mapping') },
+])
+const rankRows = computed<DistributionRankRow[]>(() => displayModelStats.value.map((model) => ({
+  key: `model-${model.model}`,
+  label: model.model,
+  requests: model.requests,
+  total_tokens: model.total_tokens,
+  actual_cost: model.actual_cost,
+  account_cost: model.account_cost,
+  cost: model.cost,
+  expandable: props.enableBreakdown,
+})))
 const modelUsageLocation = (model: string) => ({
   path: '/admin/usage',
   query: { model, start_date: props.startDate, end_date: props.endDate },
-})
-
-const chartData = computed(() => {
-  if (!displayModelStats.value.length) return null
-
-  return {
-    labels: displayModelStats.value.map((m) => m.model),
-    datasets: [
-      {
-        data: displayModelStats.value.map(getMetricValue),
-        backgroundColor: chartColors.value.slice(0, displayModelStats.value.length),
-        borderWidth: 0
-      }
-    ]
-  }
-})
-
-const rankingChartData = computed(() => {
-  if (!props.rankingItems?.length) return null
-
-  const labels = props.rankingItems.map((item, index) => `#${index + 1} ${getRankingUserLabel(item)}`)
-  const data = props.rankingItems.map((item) => toFiniteNumber(item.actual_cost))
-  const backgroundColor = chartColors.value.slice(0, props.rankingItems.length)
-
-  if (otherRankingItem.value) {
-    labels.push(t('admin.dashboard.spendingRankingOther'))
-    data.push(otherRankingItem.value.actual_cost)
-    backgroundColor.push('#94a3b8')
-  }
-
-  return {
-    labels,
-    datasets: [
-      {
-        data,
-        backgroundColor,
-        borderWidth: 0
-      }
-    ]
-  }
 })
 
 const otherRankingItem = computed<RankingDisplayItem | null>(() => {
@@ -473,55 +455,6 @@ const rankingDisplayItems = computed<RankingDisplayItem[]>(() => {
     ? [...props.rankingItems, otherRankingItem.value]
     : [...props.rankingItems]
 })
-
-const doughnutOptions = computed(() => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      display: false
-    },
-    tooltip: {
-      backgroundColor: themeColors.value.tooltip, titleColor: themeColors.value.foreground, bodyColor: themeColors.value.text,
-      borderColor: themeColors.value.grid, borderWidth: 1, padding: 12, cornerRadius: 6,
-      titleFont: { family: chartFontFamily, size: 12 }, bodyFont: { family: chartFontFamily, size: 12 },
-      callbacks: {
-        label: (context: any) => {
-          const value = context.raw as number
-          const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0)
-          const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
-          const formattedValue = props.metric === 'actual_cost'
-            ? `$${formatCost(value)}`
-            : props.metric === 'requests' ? formatNumber(value) : formatTokens(value)
-          return `${context.label}: ${formattedValue} (${percentage}%)`
-        }
-      }
-    }
-  }
-}))
-
-const rankingDoughnutOptions = computed(() => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      display: false
-    },
-    tooltip: {
-      backgroundColor: themeColors.value.tooltip, titleColor: themeColors.value.foreground, bodyColor: themeColors.value.text,
-      borderColor: themeColors.value.grid, borderWidth: 1, padding: 12, cornerRadius: 6,
-      titleFont: { family: chartFontFamily, size: 12 }, bodyFont: { family: chartFontFamily, size: 12 },
-      callbacks: {
-        label: (context: any) => {
-          const value = context.raw as number
-          const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0)
-          const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
-          return `${context.label}: $${formatCost(value)} (${percentage}%)`
-        }
-      }
-    }
-  }
-}))
 
 const formatTokens = (value: number): string => {
   if (value >= 1_000_000_000) {

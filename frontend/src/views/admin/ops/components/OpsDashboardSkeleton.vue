@@ -9,94 +9,136 @@ const props = withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <!-- Header (matches OpsDashboardHeader + overview blocks) -->
-    <div :class="['rounded-3xl bg-white shadow-sm ring-1 ring-gray-900/5 dark:bg-dark-800 dark:ring-dark-700', props.fullscreen ? 'p-8' : 'p-6']">
-      <div class="flex flex-wrap items-center justify-between gap-4 border-b border-gray-100 pb-4 dark:border-dark-700">
+  <div class="ops-skeleton space-y-6" aria-hidden="true">
+    <div>
+      <div class="ops-skeleton-heading">
         <div class="space-y-2">
-          <div class="h-6 w-44 animate-pulse rounded bg-gray-200 dark:bg-dark-700"></div>
-          <div class="h-3 w-80 max-w-full animate-pulse rounded bg-gray-100 dark:bg-dark-700/70"></div>
+          <div class="skeleton h-7 w-40"></div>
+          <div v-if="!props.fullscreen" class="skeleton h-3 w-72 max-w-full"></div>
         </div>
-        <div v-if="!props.fullscreen" class="flex flex-wrap items-center gap-3">
-          <div class="h-9 w-[140px] animate-pulse rounded-xl bg-gray-200 dark:bg-dark-700"></div>
-          <div class="h-9 w-[160px] animate-pulse rounded-xl bg-gray-200 dark:bg-dark-700"></div>
-          <div class="h-9 w-[150px] animate-pulse rounded-xl bg-gray-200 dark:bg-dark-700"></div>
-          <div class="h-9 w-9 animate-pulse rounded-xl bg-gray-200 dark:bg-dark-700"></div>
-          <div class="h-9 w-28 animate-pulse rounded-xl bg-gray-200 dark:bg-dark-700"></div>
-          <div class="h-9 w-28 animate-pulse rounded-xl bg-gray-200 dark:bg-dark-700"></div>
-          <div class="h-9 w-9 animate-pulse rounded-xl bg-gray-200 dark:bg-dark-700"></div>
-        </div>
-      </div>
-
-      <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div class="rounded-2xl bg-gray-50 p-4 dark:bg-dark-900/30 lg:col-span-5">
-          <div class="grid h-full grid-cols-1 gap-6 md:grid-cols-[200px_1fr] md:items-center">
-            <div class="h-28 animate-pulse rounded-xl bg-gray-100 dark:bg-dark-700/70"></div>
-            <div class="space-y-4">
-              <div class="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-dark-700"></div>
-              <div class="grid grid-cols-2 gap-3">
-                <div v-for="i in 4" :key="i" class="h-14 animate-pulse rounded-xl bg-gray-100 dark:bg-dark-700/70"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="lg:col-span-7">
-          <div class="grid h-full grid-cols-1 content-center gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div v-for="i in 7" :key="i" class="h-20 animate-pulse rounded-2xl bg-gray-50 dark:bg-dark-900/30"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Row: Concurrency + Throughput (matches OpsDashboard.vue) -->
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
-      <div :class="['min-h-[360px] rounded-3xl bg-white shadow-sm ring-1 ring-gray-900/5 dark:bg-dark-800 dark:ring-dark-700 lg:col-span-1', props.fullscreen ? 'p-8' : 'p-6']">
-        <div class="h-4 w-44 animate-pulse rounded bg-gray-200 dark:bg-dark-700"></div>
-        <div class="mt-6 h-72 animate-pulse rounded-2xl bg-gray-100 dark:bg-dark-700/70"></div>
-      </div>
-      <div :class="['min-h-[360px] rounded-3xl bg-white shadow-sm ring-1 ring-gray-900/5 dark:bg-dark-800 dark:ring-dark-700 lg:col-span-1', props.fullscreen ? 'p-8' : 'p-6']">
-        <div class="h-4 w-44 animate-pulse rounded bg-gray-200 dark:bg-dark-700"></div>
-        <div class="mt-6 h-72 animate-pulse rounded-2xl bg-gray-100 dark:bg-dark-700/70"></div>
-      </div>
-      <div :class="['min-h-[360px] rounded-3xl bg-white shadow-sm ring-1 ring-gray-900/5 dark:bg-dark-800 dark:ring-dark-700 lg:col-span-2', props.fullscreen ? 'p-8' : 'p-6']">
-        <div class="h-4 w-56 animate-pulse rounded bg-gray-200 dark:bg-dark-700"></div>
-        <div class="mt-6 h-72 animate-pulse rounded-2xl bg-gray-100 dark:bg-dark-700/70"></div>
-      </div>
-    </div>
-
-    <!-- Row: Visual Analysis (baseline 3-up grid) -->
-    <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-      <div
-        v-for="i in 3"
-        :key="i"
-        :class="['rounded-3xl bg-white shadow-sm ring-1 ring-gray-900/5 dark:bg-dark-800 dark:ring-dark-700', props.fullscreen ? 'p-8' : 'p-6']"
-      >
-        <div class="h-4 w-44 animate-pulse rounded bg-gray-200 dark:bg-dark-700"></div>
-        <div class="mt-6 h-56 animate-pulse rounded-2xl bg-gray-100 dark:bg-dark-700/70"></div>
-      </div>
-    </div>
-
-    <!-- Alert Events -->
-    <div :class="['rounded-3xl bg-white shadow-sm ring-1 ring-gray-900/5 dark:bg-dark-800 dark:ring-dark-700', props.fullscreen ? 'p-8' : 'p-6']">
-      <div class="flex flex-wrap items-center justify-between gap-4">
-        <div class="h-4 w-48 animate-pulse rounded bg-gray-200 dark:bg-dark-700"></div>
         <div v-if="!props.fullscreen" class="flex flex-wrap items-center gap-2">
-          <div class="h-9 w-[140px] animate-pulse rounded-xl bg-gray-200 dark:bg-dark-700"></div>
-          <div class="h-9 w-[120px] animate-pulse rounded-xl bg-gray-200 dark:bg-dark-700"></div>
-          <div class="h-9 w-[120px] animate-pulse rounded-xl bg-gray-200 dark:bg-dark-700"></div>
+          <div v-for="i in 3" :key="i" class="skeleton h-8 w-[148px]"></div>
+          <div class="skeleton h-8 w-8"></div>
+          <div class="skeleton h-8 w-28"></div>
+          <div class="skeleton h-8 w-20"></div>
+          <div class="skeleton h-8 w-8"></div>
         </div>
       </div>
 
-      <div class="mt-6 space-y-3">
-        <div v-for="i in 6" :key="i" class="flex items-center justify-between gap-4 rounded-2xl bg-gray-50 p-4 dark:bg-dark-900/30">
-          <div class="flex-1 space-y-2">
-            <div class="h-3 w-56 animate-pulse rounded bg-gray-200 dark:bg-dark-700"></div>
-            <div class="h-3 w-80 max-w-full animate-pulse rounded bg-gray-100 dark:bg-dark-700/70"></div>
+      <div class="ops-skeleton-panel">
+        <div class="ops-skeleton-band lead">
+          <div v-for="i in 2" :key="i" class="ops-skeleton-cell">
+            <div class="skeleton h-3 w-20"></div>
+            <div class="skeleton mt-3 h-6 w-24"></div>
+            <div class="skeleton mt-4 h-3 w-32 max-w-full"></div>
           </div>
-          <div class="h-7 w-20 animate-pulse rounded-xl bg-gray-200 dark:bg-dark-700"></div>
+        </div>
+        <div class="ops-skeleton-band quad">
+          <div v-for="i in 4" :key="i" class="ops-skeleton-cell">
+            <div class="skeleton h-3 w-20"></div>
+            <div class="skeleton mt-3 h-6 w-24"></div>
+            <div class="skeleton mt-4 h-3 w-full"></div>
+            <div class="skeleton mt-2 h-3 w-2/3"></div>
+          </div>
+        </div>
+        <div class="ops-skeleton-band triple">
+          <div v-for="i in 3" :key="i" class="ops-skeleton-cell">
+            <div class="skeleton h-3 w-20"></div>
+            <div class="skeleton mt-3 h-6 w-28"></div>
+            <div class="skeleton mt-4 h-3 w-full"></div>
+            <div class="skeleton mt-2 h-3 w-2/3"></div>
+          </div>
+        </div>
+        <div class="ops-skeleton-band system">
+          <div v-for="i in 6" :key="i" class="ops-skeleton-cell">
+            <div class="skeleton h-3 w-12"></div>
+            <div class="skeleton mt-2 h-5 w-16"></div>
+            <div v-if="!props.fullscreen" class="skeleton mt-2 h-3 w-full"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
+      <div class="ops-skeleton-card min-h-[360px] lg:col-span-1">
+        <div class="skeleton h-4 w-40 max-w-full"></div>
+        <div class="skeleton mt-6 h-72"></div>
+      </div>
+      <div class="ops-skeleton-card min-h-[360px] lg:col-span-1">
+        <div class="skeleton h-4 w-40 max-w-full"></div>
+        <div class="skeleton mt-6 h-72"></div>
+      </div>
+      <div class="ops-skeleton-card min-h-[360px] lg:col-span-2">
+        <div class="skeleton h-4 w-56 max-w-full"></div>
+        <div class="skeleton mt-6 h-72"></div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div v-for="i in 3" :key="i" class="ops-skeleton-card">
+        <div class="skeleton h-4 w-40 max-w-full"></div>
+        <div class="skeleton mt-6 h-56"></div>
+      </div>
+    </div>
+
+    <div class="ops-skeleton-card">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="skeleton h-4 w-48"></div>
+        <div v-if="!props.fullscreen" class="flex flex-wrap items-center gap-2">
+          <div v-for="i in 3" :key="i" class="skeleton h-8 w-[120px]"></div>
+        </div>
+      </div>
+
+      <div class="ops-skeleton-rows">
+        <div v-for="i in 6" :key="i">
+          <div class="flex-1 space-y-2">
+            <div class="skeleton h-3 w-56 max-w-full"></div>
+            <div class="skeleton h-3 w-80 max-w-full"></div>
+          </div>
+          <div class="skeleton h-6 w-16"></div>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.ops-skeleton-heading { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:16px 24px; margin-bottom:20px; }
+.ops-skeleton-panel,.ops-skeleton-card { background:var(--surface-panel); border:1px solid var(--border-default); border-radius:8px; }
+.ops-skeleton-card { padding:20px; }
+.ops-skeleton-band { display:grid; }
+.ops-skeleton-band + .ops-skeleton-band { border-top:1px solid var(--border-default); }
+.ops-skeleton-band.lead { grid-template-columns:minmax(0,1fr) minmax(0,3fr); }
+.ops-skeleton-band.quad { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.ops-skeleton-band.triple { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.ops-skeleton-band.system { grid-template-columns:repeat(6,minmax(0,1fr)); }
+.ops-skeleton-cell { min-width:0; padding:18px 20px; }
+.ops-skeleton-cell + .ops-skeleton-cell { border-left:1px solid var(--border-default); }
+.ops-skeleton-rows { margin-top:16px; }
+.ops-skeleton-rows > div { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 0; border-top:1px solid var(--border-default); }
+@media(max-width:1180px) {
+  .ops-skeleton-band.lead { grid-template-columns:minmax(0,1fr); }
+  .ops-skeleton-band.lead .ops-skeleton-cell + .ops-skeleton-cell { border-left:0; border-top:1px solid var(--border-default); }
+  .ops-skeleton-band.quad { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .ops-skeleton-band.quad .ops-skeleton-cell:nth-child(odd) { border-left:0; }
+  .ops-skeleton-band.quad .ops-skeleton-cell:nth-child(n+3) { border-top:1px solid var(--border-default); }
+  .ops-skeleton-band.system { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .ops-skeleton-band.system .ops-skeleton-cell:nth-child(3n+1) { border-left:0; }
+  .ops-skeleton-band.system .ops-skeleton-cell:nth-child(n+4) { border-top:1px solid var(--border-default); }
+}
+@media(max-width:900px) {
+  .ops-skeleton-band.triple { grid-template-columns:minmax(0,1fr); }
+  .ops-skeleton-band.triple .ops-skeleton-cell + .ops-skeleton-cell { border-left:0; border-top:1px solid var(--border-default); }
+}
+@media(max-width:640px) {
+  .ops-skeleton-heading { align-items:stretch; flex-direction:column; margin-bottom:16px; }
+  .ops-skeleton-cell { padding:14px 16px; }
+  .ops-skeleton-card { padding:16px; }
+  .ops-skeleton-band.quad { grid-template-columns:minmax(0,1fr); }
+  .ops-skeleton-band.quad .ops-skeleton-cell + .ops-skeleton-cell { border-left:0; border-top:1px solid var(--border-default); }
+  .ops-skeleton-band.system { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .ops-skeleton-band.system .ops-skeleton-cell:nth-child(3n+1) { border-left:1px solid var(--border-default); }
+  .ops-skeleton-band.system .ops-skeleton-cell:nth-child(odd) { border-left:0; }
+  .ops-skeleton-band.system .ops-skeleton-cell:nth-child(n+3) { border-top:1px solid var(--border-default); }
+}
+</style>

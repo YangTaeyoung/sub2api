@@ -55,12 +55,16 @@ onUnmounted(() => {
 }
 
 .layout-section-scrollable {
-  @apply flex-1 min-h-0 flex flex-col;
+  @apply min-h-0 flex flex-col;
+  flex: 0 1 auto;
 }
 
 /* 表格滚动容器 - 增强版表体滚动方案 */
 .table-scroll-container {
-  @apply flex flex-col overflow-hidden h-full bg-white dark:bg-dark-800 rounded-lg border border-gray-200 dark:border-dark-700;
+  @apply flex min-h-0 flex-col overflow-hidden rounded-lg;
+  flex: 0 1 auto;
+  border: 1px solid var(--border-default);
+  background: var(--surface-panel);
 }
 
 .table-scroll-container :deep(.table-wrapper) {

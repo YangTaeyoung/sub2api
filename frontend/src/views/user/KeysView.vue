@@ -408,7 +408,7 @@
                 @click="openUseKeyModal(row)"
                 :aria-label="t('keys.useKey')"
                 :title="t('keys.useKey')"
-                class="keys-row-action flex items-center justify-center rounded-md p-2 text-gray-500 transition-colors hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-900/20 dark:hover:text-green-400"
+                class="keys-row-action flex items-center justify-center rounded-md p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-dark-700 dark:hover:text-white"
               >
                 <Icon name="terminal" size="sm" />
                 <span class="sr-only">{{ t('keys.useKey') }}</span>
@@ -419,7 +419,7 @@
                 @click="importToCcswitch(row)"
                 :aria-label="t('keys.importToCcSwitch')"
                 :title="t('keys.importToCcSwitch')"
-                class="keys-row-action flex items-center justify-center rounded-md p-2 text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
+                class="keys-row-action flex items-center justify-center rounded-md p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-dark-700 dark:hover:text-white"
               >
                 <Icon name="upload" size="sm" />
                 <span class="sr-only">{{ t('keys.importToCcSwitch') }}</span>
@@ -445,7 +445,7 @@
                 @click="editKey(row)"
                 :aria-label="t('common.edit')"
                 :title="t('common.edit')"
-                class="keys-row-action flex items-center justify-center rounded-md p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-primary-600 dark:hover:bg-dark-700 dark:hover:text-primary-400"
+                class="keys-row-action flex items-center justify-center rounded-md p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-dark-700 dark:hover:text-white"
               >
                 <Icon name="edit" size="sm" />
                 <span class="sr-only">{{ t('common.edit') }}</span>
@@ -2133,7 +2133,7 @@ onUnmounted(() => {
 .keys-table-layout :deep(.table-wrapper table) { min-width: 100%; }
 .keys-table-layout :deep(.table-wrapper td) { vertical-align: middle; }
 .keys-table-layout :deep(.table-wrapper th) { white-space: nowrap; }
-.keys-row-action { width: 30px; height: 30px; }
+.keys-row-action { width: 30px; height: 30px; color: var(--text-secondary); }
 @media (max-width: 1023px) { .keys-table-layout :deep(.table-wrapper) { max-height: none; } }
 @media (pointer: coarse) { .keys-row-action { width: 40px; height: 44px; } }
 </style>

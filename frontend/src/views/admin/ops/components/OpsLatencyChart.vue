@@ -7,6 +7,7 @@ import type { OpsLatencyHistogramResponse } from '@/api/admin/ops'
 import type { ChartState } from '../types'
 import HelpTooltip from '@/components/common/HelpTooltip.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import { useChartTheme } from '@/composables/useChartTheme'
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend)
 
@@ -18,11 +19,13 @@ interface Props {
 const props = defineProps<Props>()
 const { t } = useI18n()
 
-const isDarkMode = computed(() => document.documentElement.classList.contains('dark'))
+const { colors: themeColors, fontFamily } = useChartTheme()
 const colors = computed(() => ({
-  blue: '#3b82f6',
-  grid: isDarkMode.value ? '#374151' : '#f3f4f6',
-  text: isDarkMode.value ? '#9ca3af' : '#6b7280'
+  bar: themeColors.value.input,
+  grid: themeColors.value.grid,
+  text: themeColors.value.text,
+  foreground: themeColors.value.foreground,
+  tooltip: themeColors.value.tooltip
 }))
 
 const hasData = computed(() => (props.latencyData?.total_requests ?? 0) > 0)
@@ -42,8 +45,8 @@ const chartData = computed(() => {
       {
         label: t('admin.ops.requests'),
         data: props.latencyData.buckets.map((b) => b.count),
-        backgroundColor: c.blue,
-        borderRadius: 4,
+        backgroundColor: c.bar,
+        borderRadius: 2,
         barPercentage: 0.6
       }
     ]
@@ -55,8 +58,18 @@ const options = computed(() => {
   return {
     responsive: true,
     maintainAspectRatio: false,
+    font: { family: fontFamily },
     plugins: {
-      legend: { display: false }
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: c.tooltip,
+        titleColor: c.foreground,
+        bodyColor: c.text,
+        borderColor: c.grid,
+        borderWidth: 1,
+        padding: 10,
+        displayColors: false
+      }
     },
     scales: {
       x: {
@@ -74,17 +87,9 @@ const options = computed(() => {
 </script>
 
 <template>
-  <div class="flex h-full flex-col rounded-3xl bg-white p-6 shadow-sm ring-1 ring-gray-900/5 dark:bg-dark-800 dark:ring-dark-700">
+  <div class="flex h-full flex-col rounded-lg border border-[var(--border-default)] bg-[var(--surface-panel)] p-4 sm:p-5">
     <div class="mb-4 flex items-center justify-between">
-      <h3 class="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-white">
-        <svg class="h-4 w-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
+      <h3 class="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
         {{ t('admin.ops.latencyHistogram') }}
         <HelpTooltip :content="t('admin.ops.tooltips.latencyHistogram')" />
       </h3>
@@ -93,7 +98,7 @@ const options = computed(() => {
     <div class="min-h-0 flex-1">
       <Bar v-if="state === 'ready' && chartData" :data="chartData" :options="options" />
       <div v-else class="flex h-full items-center justify-center">
-        <div v-if="state === 'loading'" class="animate-pulse text-sm text-gray-400">{{ t('common.loading') }}</div>
+        <div v-if="state === 'loading'" class="text-sm text-[var(--text-muted)]">{{ t('common.loading') }}</div>
         <EmptyState v-else :title="t('common.noData')" :description="t('admin.ops.charts.emptyRequest')" />
       </div>
     </div>

@@ -90,8 +90,20 @@ export default {
       backdropBlur: {
         xs: '2px'
       },
+      fontWeight: {
+        extrabold: '600',
+        black: '600'
+      },
+      letterSpacing: {
+        wide: '0',
+        wider: '0',
+        widest: '0'
+      },
       borderRadius: {
-        '4xl': '2rem'
+        xl: '8px',
+        '2xl': '8px',
+        '3xl': '8px',
+        '4xl': '8px'
       }
     }
   },

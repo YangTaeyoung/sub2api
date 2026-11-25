@@ -97,12 +97,10 @@ describe('Ops SLA-scoped error charts', () => {
       global: globalStubs,
     })
 
-    const doughnut = wrapper.findComponent({ name: 'Doughnut' })
-    expect(doughnut.exists()).toBe(true)
-    expect(doughnut.props('data')).toMatchObject({
-      labels: ['admin.ops.client'],
-      datasets: [{ data: [2] }],
-    })
+    const rows = wrapper.findAll('[data-testid="error-distribution-row"]')
+    expect(rows).toHaveLength(1)
+    expect(rows[0].text()).toContain('admin.ops.client')
+    expect(rows[0].get('[data-testid="error-distribution-count"]').text()).toBe('2')
   })
 
   it('错误分布图在只有业务限制错误时显示为空态', () => {
@@ -117,7 +115,7 @@ describe('Ops SLA-scoped error charts', () => {
       global: globalStubs,
     })
 
-    expect(wrapper.findComponent({ name: 'Doughnut' }).exists()).toBe(false)
+    expect(wrapper.find('[data-testid="error-distribution-row"]').exists()).toBe(false)
     expect(wrapper.find('.empty-state-stub').exists()).toBe(true)
   })
 

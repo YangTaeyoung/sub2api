@@ -115,16 +115,7 @@ watch(
   },
 )
 
-// Label background colors
-const labelClass = computed(() => {
-  const colors = {
-    indigo: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300',
-    emerald: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
-    purple: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300',
-    amber: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
-  }
-  return colors[props.color]
-})
+const labelClass = 'bg-gray-100 text-gray-600 dark:bg-dark-700 dark:text-dark-300'
 
 // Label badge width mode: fixed 定宽保证账号页纵向对齐；auto 限宽截断适配
 // 监控页「Pro/7 天」类组合标签。百分比列在两种模式下保持不变。

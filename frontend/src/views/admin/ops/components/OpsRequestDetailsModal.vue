@@ -205,7 +205,7 @@ function accountLabel(row: OpsRequestDetail): string {
         <!-- Loading -->
         <div v-if="loading" class="flex flex-1 items-center justify-center py-16">
           <div class="flex flex-col items-center gap-3">
-            <svg class="h-8 w-8 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
+            <svg class="h-8 w-8 animate-spin text-[var(--accent-primary)]" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path
                 class="opacity-75"
@@ -266,31 +266,31 @@ function accountLabel(row: OpsRequestDetail): string {
               <table v-else class="min-w-full divide-y divide-gray-200 dark:divide-dark-700">
                 <thead class="sticky top-0 z-10 bg-gray-50 dark:bg-dark-900">
                 <tr>
-                  <th class="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  <th class="px-4 py-3 text-left text-xs font-medium text-[var(--text-muted)]">
                     {{ t('admin.ops.requestDetails.table.time') }}
                   </th>
-                  <th class="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  <th class="px-4 py-3 text-left text-xs font-medium text-[var(--text-muted)]">
                     {{ t('admin.ops.requestDetails.table.kind') }}
                   </th>
-                  <th class="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  <th class="px-4 py-3 text-left text-xs font-medium text-[var(--text-muted)]">
                     {{ t('admin.ops.requestDetails.table.platform') }}
                   </th>
-                  <th class="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  <th class="px-4 py-3 text-left text-xs font-medium text-[var(--text-muted)]">
                     {{ t('admin.ops.requestDetails.table.model') }}
                   </th>
-                  <th class="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  <th class="px-4 py-3 text-left text-xs font-medium text-[var(--text-muted)]">
                     {{ t('admin.ops.requestDetails.table.account') }}
                   </th>
-                  <th class="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  <th class="px-4 py-3 text-left text-xs font-medium text-[var(--text-muted)]">
                     {{ latencyLabel }}
                   </th>
-                  <th class="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  <th class="px-4 py-3 text-left text-xs font-medium text-[var(--text-muted)]">
                     {{ t('admin.ops.requestDetails.table.status') }}
                   </th>
-                  <th class="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  <th class="px-4 py-3 text-left text-xs font-medium text-[var(--text-muted)]">
                     {{ t('admin.ops.requestDetails.table.requestId') }}
                   </th>
-                  <th class="px-4 py-3 text-right text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  <th class="px-4 py-3 text-right text-xs font-medium text-[var(--text-muted)]">
                     {{ t('admin.ops.requestDetails.table.actions') }}
                   </th>
                 </tr>

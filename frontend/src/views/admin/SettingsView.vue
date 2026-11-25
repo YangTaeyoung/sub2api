@@ -6365,7 +6365,7 @@
             <div class="space-y-6 p-6">
               <!-- Backend Mode -->
               <div
-                class="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20"
+                class="flex items-center justify-between gap-4 border-b border-[var(--border-default)] pb-6"
               >
                 <div>
                   <h3 class="text-sm font-medium text-gray-900 dark:text-white">
@@ -13325,15 +13325,12 @@ watch(
 @media (pointer: coarse) { .settings-tab { height: 44px; } }
 .settings-save-dock {
   position: sticky;
-  bottom: 12px;
+  bottom: 0;
   z-index: 20;
   display: flex;
-  width: fit-content;
-  align-items: center;
-  margin-left: auto;
-  padding: 6px;
-  border: 1px solid var(--border-default);
-  border-radius: 8px;
-  background: var(--surface-raised);
+  justify-content: flex-end;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-default);
+  background: var(--surface-canvas);
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div ref="rootRef" v-if="showUsageWindows" :aria-busy="loading || activeQueryLoading">
-    <details class="account-usage-details" :class="{ 'is-compact': isCompact }" :open="!isCompact">
+    <component :is="isCompact ? 'details' : 'div'" class="account-usage-details" :class="{ 'is-compact': isCompact }">
       <summary v-if="isCompact" class="account-usage-summary">
         <span v-if="loading" class="text-xs text-gray-500 dark:text-dark-400">{{ t('common.loading') }}</span>
         <span v-else-if="error || usageInfo?.error" class="block max-w-[210px] truncate text-xs text-red-600 dark:text-red-400" :title="error || usageInfo?.error">{{ error || usageInfo?.error }}</span>
@@ -698,7 +698,7 @@
       <div class="text-xs text-gray-400">-</div>
     </template>
       </div>
-    </details>
+    </component>
   </div>
 
   <!-- Non-OAuth/Setup-Token accounts -->

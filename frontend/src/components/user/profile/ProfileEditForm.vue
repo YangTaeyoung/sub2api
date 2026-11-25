@@ -2,16 +2,16 @@
   <div :class="props.embedded ? 'space-y-4' : 'card'">
     <div
       v-if="!props.embedded"
-      class="border-b border-gray-100 px-6 py-4 dark:border-dark-700"
+      class="border-b border-[var(--border-default)] px-4 py-4 sm:px-6"
     >
-      <h2 class="text-lg font-medium text-gray-900 dark:text-white">
+      <h2 class="text-sm font-semibold text-[var(--text-primary)]">
         {{ t('profile.editProfile') }}
       </h2>
     </div>
-    <div :class="props.embedded ? '' : 'px-6 py-6'">
+    <div :class="props.embedded ? '' : 'px-4 py-5 sm:px-6'">
       <form @submit.prevent="handleUpdateProfile" class="space-y-4">
         <div v-if="props.embedded">
-          <p class="text-sm font-semibold text-gray-900 dark:text-white">
+          <p class="text-sm font-medium text-[var(--text-primary)]">
             {{ t('profile.editProfile') }}
           </p>
         </div>
@@ -28,7 +28,7 @@
           />
         </div>
 
-        <div class="flex justify-end pt-4">
+        <div class="flex justify-end">
           <button type="submit" :disabled="loading" class="btn btn-primary">
             {{ loading ? t('profile.updating') : t('profile.updateProfile') }}
           </button>

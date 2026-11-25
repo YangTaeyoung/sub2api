@@ -2,26 +2,25 @@
   <AppLayout>
     <div class="mx-auto max-w-2xl space-y-6">
       <!-- Current Balance Card -->
-      <div class="card overflow-hidden">
-        <div class="bg-gradient-to-br from-primary-500 to-primary-600 px-6 py-8 text-center">
-          <div
-            class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm"
-          >
-            <Icon name="creditCard" size="xl" class="text-white" />
-          </div>
-          <p class="text-sm font-medium text-primary-100">{{ t('redeem.currentBalance') }}</p>
-          <p class="mt-2 text-4xl font-bold text-white">
+      <dl class="card grid grid-cols-2 divide-x divide-[var(--border-default)]">
+        <div class="min-w-0 px-4 py-4 sm:px-6">
+          <dt class="text-xs text-[var(--text-muted)]">{{ t('redeem.currentBalance') }}</dt>
+          <dd class="mt-1 text-2xl font-[550] tabular-nums text-[var(--text-primary)]">
             ${{ user?.balance?.toFixed(2) || '0.00' }}
-          </p>
-          <p class="mt-2 text-sm text-primary-100">
-            {{ t('redeem.concurrency') }}: {{ user?.concurrency || 0 }} {{ t('redeem.requests') }}
-          </p>
+          </dd>
         </div>
-      </div>
+        <div class="min-w-0 px-4 py-4 sm:px-6">
+          <dt class="text-xs text-[var(--text-muted)]">{{ t('redeem.concurrency') }}</dt>
+          <dd class="mt-1 text-2xl font-[550] tabular-nums text-[var(--text-primary)]">
+            {{ user?.concurrency || 0 }}
+            <span class="text-sm font-normal text-[var(--text-muted)]">{{ t('redeem.requests') }}</span>
+          </dd>
+        </div>
+      </dl>
 
       <!-- Redeem Form -->
       <div class="card">
-        <div class="p-6">
+        <div class="px-4 py-5 sm:px-6">
           <form @submit.prevent="handleRedeem" class="space-y-5">
             <div>
               <label for="code" class="input-label">
@@ -29,7 +28,7 @@
               </label>
               <div class="relative mt-1">
                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                  <Icon name="gift" size="md" class="text-gray-400 dark:text-dark-500" />
+                  <Icon name="gift" size="md" class="text-[var(--text-muted)]" />
                 </div>
                 <input
                   id="code"
@@ -84,14 +83,10 @@
           v-if="redeemResult"
           class="card border-emerald-200 bg-emerald-50 dark:border-emerald-800/50 dark:bg-emerald-900/20"
         >
-          <div class="p-6">
-            <div class="flex items-start gap-4">
-              <div
-                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/30"
-              >
-                <Icon name="checkCircle" size="md" class="text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <div class="flex-1">
+          <div class="px-4 py-5 sm:px-6">
+            <div class="flex items-start gap-3">
+                <Icon name="checkCircle" size="md" class="mt-0.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <div class="min-w-0 flex-1">
                 <h3 class="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
                   {{ t('redeem.redeemSuccess') }}
                 </h3>
@@ -138,18 +133,14 @@
           v-if="errorMessage"
           class="card border-red-200 bg-red-50 dark:border-red-800/50 dark:bg-red-900/20"
         >
-          <div class="p-6">
-            <div class="flex items-start gap-4">
-              <div
-                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-red-100 dark:bg-red-900/30"
-              >
+          <div class="px-4 py-5 sm:px-6">
+            <div class="flex items-start gap-3">
                 <Icon
                   name="exclamationCircle"
                   size="md"
-                  class="text-red-600 dark:text-red-400"
+                  class="mt-0.5 shrink-0 text-red-600 dark:text-red-400"
                 />
-              </div>
-              <div class="flex-1">
+              <div class="min-w-0 flex-1">
                 <h3 class="text-sm font-semibold text-red-800 dark:text-red-300">
                   {{ t('redeem.redeemFailed') }}
                 </h3>
@@ -163,22 +154,16 @@
       </transition>
 
       <!-- Information Card -->
-      <div
-        class="card border-primary-200 bg-primary-50 dark:border-primary-800/50 dark:bg-primary-900/20"
-      >
-        <div class="p-6">
-          <div class="flex items-start gap-4">
-            <div
-              class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-primary-100 dark:bg-primary-900/30"
-            >
-              <Icon name="infoCircle" size="md" class="text-primary-600 dark:text-primary-400" />
-            </div>
-            <div class="flex-1">
-              <h3 class="text-sm font-semibold text-primary-800 dark:text-primary-300">
+      <div class="card">
+        <div class="px-4 py-5 sm:px-6">
+          <div class="flex items-start gap-3">
+              <Icon name="infoCircle" size="md" class="mt-0.5 shrink-0 text-[var(--text-muted)]" />
+              <div class="min-w-0 flex-1">
+              <h3 class="text-sm font-semibold text-[var(--text-primary)]">
                 {{ t('redeem.aboutCodes') }}
               </h3>
               <ul
-                class="mt-2 list-inside list-disc space-y-1 text-sm text-primary-700 dark:text-primary-400"
+                class="mt-2 list-outside list-disc space-y-1 pl-4 text-sm text-[var(--text-secondary)]"
               >
                 <li>{{ t('redeem.codeRule1') }}</li>
                 <li>{{ t('redeem.codeRule2') }}</li>
@@ -186,7 +171,7 @@
                   {{ t('redeem.codeRule3') }}
                   <span
                     v-if="contactInfo"
-                    class="ml-1.5 inline-flex items-center rounded-md bg-primary-200/50 px-2 py-0.5 text-xs font-medium text-primary-800 dark:bg-primary-800/40 dark:text-primary-200"
+                    class="ml-1 font-medium text-[var(--text-primary)]"
                   >
                     {{ contactInfo }}
                   </span>
@@ -200,15 +185,15 @@
 
       <!-- Recent Activity -->
       <div class="card">
-        <div class="border-b border-gray-100 px-6 py-4 dark:border-dark-700">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+        <div class="border-b border-[var(--border-default)] px-4 py-3 sm:px-6">
+          <h2 class="text-sm font-semibold text-[var(--text-primary)]">
             {{ t('redeem.recentActivity') }}
           </h2>
         </div>
-        <div class="p-6">
+        <div class="px-4 py-5 sm:px-6">
           <!-- Loading State -->
           <div v-if="loadingHistory" class="flex items-center justify-center py-8">
-            <svg class="h-6 w-6 animate-spin text-primary-500" fill="none" viewBox="0 0 24 24">
+            <svg class="h-5 w-5 animate-spin text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24">
               <circle
                 class="opacity-25"
                 cx="12"
@@ -226,32 +211,19 @@
           </div>
 
           <!-- History List -->
-          <div v-else-if="history.length > 0" class="space-y-3">
+          <div v-else-if="history.length > 0" class="-my-3 divide-y divide-[var(--border-default)]">
             <div
               v-for="item in history"
               :key="item.id"
-              class="flex items-center justify-between rounded-xl bg-gray-50 p-4 dark:bg-dark-800"
+              class="flex items-center justify-between gap-3 py-3"
             >
-              <div class="flex items-center gap-4">
-                <div
-                  :class="[
-                    'flex h-10 w-10 items-center justify-center rounded-xl',
-                    isBalanceType(item.type)
-                      ? item.value >= 0
-                        ? 'bg-emerald-100 dark:bg-emerald-900/30'
-                        : 'bg-red-100 dark:bg-red-900/30'
-                      : isSubscriptionType(item.type)
-                        ? 'bg-purple-100 dark:bg-purple-900/30'
-                        : item.value >= 0
-                          ? 'bg-blue-100 dark:bg-blue-900/30'
-                          : 'bg-orange-100 dark:bg-orange-900/30'
-                  ]"
-                >
+              <div class="flex min-w-0 items-center gap-3">
+                <div class="shrink-0">
                   <!-- 余额类型图标 -->
                   <Icon
                     v-if="isBalanceType(item.type)"
                     name="dollar"
-                    size="md"
+                    size="sm"
                     :class="
                       item.value >= 0
                         ? 'text-emerald-600 dark:text-emerald-400'
@@ -262,14 +234,14 @@
                   <Icon
                     v-else-if="isSubscriptionType(item.type)"
                     name="badge"
-                    size="md"
+                    size="sm"
                     class="text-purple-600 dark:text-purple-400"
                   />
                   <!-- 并发类型图标 -->
                   <Icon
                     v-else
                     name="bolt"
-                    size="md"
+                    size="sm"
                     :class="
                       item.value >= 0
                         ? 'text-blue-600 dark:text-blue-400'
@@ -277,19 +249,19 @@
                     "
                   />
                 </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-900 dark:text-white">
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-medium text-[var(--text-primary)]">
                     {{ getHistoryItemTitle(item) }}
                   </p>
-                  <p class="text-xs text-gray-500 dark:text-dark-400">
+                  <p class="text-xs text-[var(--text-muted)]">
                     {{ formatDateTime(item.used_at) }}
                   </p>
                 </div>
               </div>
-              <div class="text-right">
+              <div class="shrink-0 text-right">
                 <p
                   :class="[
-                    'text-sm font-semibold',
+                    'text-sm font-semibold tabular-nums',
                     isBalanceType(item.type)
                       ? item.value >= 0
                         ? 'text-emerald-600 dark:text-emerald-400'
@@ -305,17 +277,17 @@
                 </p>
                 <p
                   v-if="!isAdminAdjustment(item.type)"
-                  class="font-mono text-xs text-gray-400 dark:text-dark-500"
+                  class="font-mono text-xs text-[var(--text-muted)]"
                 >
                   {{ item.code.slice(0, 8) }}...
                 </p>
-                <p v-else class="text-xs text-gray-400 dark:text-dark-500">
+                <p v-else class="text-xs text-[var(--text-muted)]">
                   {{ t('redeem.adminAdjustment') }}
                 </p>
                 <!-- Display notes for admin adjustments -->
                 <p
                   v-if="item.notes"
-                  class="mt-1 text-xs text-gray-500 dark:text-dark-400 italic max-w-[200px] truncate"
+                  class="mt-1 text-xs text-[var(--text-muted)] italic max-w-[200px] truncate"
                   :title="item.notes"
                 >
                   {{ item.notes }}
@@ -326,16 +298,11 @@
 
           <!-- Empty State -->
           <div v-else class="empty-state py-8">
-            <div
-              class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 dark:bg-dark-800"
-            >
-              <Icon name="clock" size="xl" class="text-gray-400 dark:text-dark-500" />
-            </div>
-            <p class="text-sm text-gray-500 dark:text-dark-400">
+            <p class="text-sm text-[var(--text-muted)]">
               {{ t('redeem.historyWillAppear') }}
             </p>
           </div>
-          <div class="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm">
+          <div class="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border-default)] pt-4 text-sm text-[var(--text-secondary)]">
             <span>{{ t('common.total') }}: {{ historyTotal }} {{ t('pagination.results') }}</span>
             <label>
               {{ t('pagination.perPage') }}
@@ -535,12 +502,11 @@ onMounted(async () => {
 <style scoped>
 .fade-enter-active,
 .fade-leave-active {
-  transition: all 0.3s ease;
+  transition: opacity 0.15s ease-out;
 }
 
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-  transform: translateY(-8px);
 }
 </style>

@@ -1,36 +1,22 @@
 <template>
-  <div class="bg-gray-50/50 dark:bg-dark-700/30">
-    <div v-if="loading" class="flex items-center justify-center py-3">
+  <div class="breakdown">
+    <div v-if="loading" class="breakdown-state">
       <LoadingSpinner />
     </div>
-    <div v-else-if="items.length === 0" class="py-2 text-center text-xs text-gray-400">
+    <div v-else-if="items.length === 0" class="breakdown-state">
       {{ t('admin.dashboard.noDataAvailable') }}
     </div>
-    <table v-else class="w-full text-xs">
+    <table v-else>
       <tbody>
-        <tr
-          v-for="user in items"
-          :key="user.user_id"
-          class="border-t border-gray-100/50 dark:border-dark-700/50"
-        >
-          <td class="max-w-[120px] truncate py-1 pl-6 text-gray-600 dark:text-gray-300" :title="user.email">
+        <tr v-for="user in items" :key="user.user_id">
+          <td class="breakdown-user" :title="user.email">
             {{ user.email || `User #${user.user_id}` }}
           </td>
-          <td class="py-1 text-right text-gray-500 dark:text-gray-400">
-            {{ user.requests.toLocaleString() }}
-          </td>
-          <td class="py-1 text-right text-gray-500 dark:text-gray-400">
-            {{ formatTokens(user.total_tokens) }}
-          </td>
-          <td class="py-1 text-right text-green-600 dark:text-green-400">
-            ${{ formatCost(user.actual_cost) }}
-          </td>
-          <td v-if="showAccountCost" class="py-1 text-right text-orange-500 dark:text-orange-400">
-            ${{ formatCost(user.account_cost) }}
-          </td>
-          <td class="py-1 pr-1 text-right text-gray-400 dark:text-gray-500">
-            ${{ formatCost(user.cost) }}
-          </td>
+          <td>{{ user.requests.toLocaleString() }}</td>
+          <td>{{ formatTokens(user.total_tokens) }}</td>
+          <td class="breakdown-primary">${{ formatCost(user.actual_cost) }}</td>
+          <td v-if="showAccountCost">${{ formatCost(user.account_cost) }}</td>
+          <td class="breakdown-muted">${{ formatCost(user.cost) }}</td>
         </tr>
       </tbody>
     </table>
@@ -71,3 +57,14 @@ const formatCost = (value: number | undefined | null): string => {
   return value.toFixed(4)
 }
 </script>
+
+<style scoped>
+.breakdown { background:var(--surface-canvas); font-size:12px; font-variant-numeric:tabular-nums; }
+.breakdown-state { display:flex; align-items:center; justify-content:center; padding:10px 0; color:var(--text-muted); }
+.breakdown table { width:100%; border-collapse:collapse; }
+.breakdown tr + tr td { border-top:1px solid var(--border-default); }
+.breakdown td { padding:6px 8px; color:var(--text-secondary); text-align:right; white-space:nowrap; }
+.breakdown td.breakdown-user { max-width:160px; overflow:hidden; padding-left:20px; text-align:left; text-overflow:ellipsis; }
+.breakdown td.breakdown-primary { color:var(--text-primary); }
+.breakdown td.breakdown-muted { color:var(--text-muted); }
+</style>

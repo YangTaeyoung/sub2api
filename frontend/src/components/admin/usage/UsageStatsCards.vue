@@ -1,99 +1,55 @@
 <template>
-  <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-    <div class="card p-4 flex items-center gap-3">
-      <div class="rounded-lg bg-blue-100 p-2 dark:bg-blue-900/30 text-blue-600">
-        <Icon name="document" size="md" />
-      </div>
-      <div>
-        <p class="text-xs font-medium text-gray-500">{{ t('usage.totalRequests') }}</p>
-        <p class="text-xl font-bold">{{ stats?.total_requests?.toLocaleString() || '0' }}</p>
-        <p class="text-xs text-gray-400">{{ t('usage.inSelectedRange') }}</p>
-      </div>
-    </div>
-    <div class="card p-4 flex items-center gap-3">
-      <div class="rounded-lg bg-amber-100 p-2 dark:bg-amber-900/30 text-amber-600"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" /></svg></div>
-      <div>
-        <p class="text-xs font-medium text-gray-500">{{ t('usage.totalTokens') }}</p>
-        <p class="text-xl font-bold">{{ formatTokens(stats?.total_tokens || 0) }}</p>
-        <p class="flex flex-wrap items-center gap-x-1 text-xs text-gray-500">
-          <span>{{ t('usage.in') }}: {{ formatTokens(stats?.total_input_tokens || 0) }}</span>
-          <span>/</span>
-          <span>{{ t('usage.out') }}: {{ formatTokens(stats?.total_output_tokens || 0) }}</span>
-          <span>/</span>
-          <span class="group relative inline-flex cursor-help items-center gap-0.5" tabindex="0">
-            <span>{{ cacheLabel() }}: {{ formatTokens(stats?.total_cache_tokens || 0) }}</span>
-            <svg
-              class="h-3.5 w-3.5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <span
-              class="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-56 -translate-x-1/2 rounded-lg border border-gray-200 bg-white p-3 text-left text-xs text-gray-700 shadow-lg group-hover:block group-focus:block dark:border-dark-600 dark:bg-dark-800 dark:text-dark-200"
-            >
-              <span class="mb-2 block font-medium text-gray-900 dark:text-white">
-                {{ cacheDetailLabel() }}
-              </span>
-              <span class="flex items-center justify-between gap-3">
-                <span>{{ t('usage.cacheCreationTokensLabel') }}</span>
-                <span class="tabular-nums">
-                  {{ formatTokens(stats?.total_cache_creation_tokens || 0) }}
-                </span>
-              </span>
-              <span class="mt-1 flex items-center justify-between gap-3">
-                <span>{{ t('usage.cacheReadTokensLabel') }}</span>
-                <span class="tabular-nums">
-                  {{ formatTokens(stats?.total_cache_read_tokens || 0) }}
-                </span>
-              </span>
+  <MetricStrip :items="metricItems">
+    <template #detail-totalTokens>
+      <span class="metric-part">{{ t('usage.in') }} <b>{{ formatTokens(stats?.total_input_tokens || 0) }}</b></span>
+      <span class="metric-part">{{ t('usage.out') }} <b>{{ formatTokens(stats?.total_output_tokens || 0) }}</b></span>
+      <span
+        class="metric-part group inline-flex cursor-help items-center gap-1"
+        tabindex="0"
+        @mouseenter="placeCacheTooltip"
+        @focus="placeCacheTooltip"
+      >
+        <span>{{ t('usage.cacheTotal') }} <b>{{ formatTokens(stats?.total_cache_tokens || 0) }}</b></span>
+        <Icon name="infoCircle" size="xs" />
+        <span
+          class="pointer-events-none fixed z-50 hidden w-56 whitespace-normal rounded-md border border-[var(--border-default)] bg-[var(--surface-raised)] p-3 text-left text-xs text-[var(--text-secondary)] shadow-lg group-hover:block group-focus:block"
+          :style="cacheTooltipStyle"
+        >
+          <span class="mb-2 block font-medium text-[var(--text-primary)]">
+            {{ t('usage.cacheBreakdown') }}
+          </span>
+          <span class="flex items-center justify-between gap-3">
+            <span>{{ t('usage.cacheCreationTokensLabel') }}</span>
+            <span class="tabular-nums">
+              {{ formatTokens(stats?.total_cache_creation_tokens || 0) }}
             </span>
           </span>
-        </p>
-      </div>
-    </div>
-    <div class="card p-4 flex items-center gap-3">
-      <div class="rounded-lg bg-green-100 p-2 dark:bg-green-900/30 text-green-600">
-        <Icon name="dollar" size="md" />
-      </div>
-      <div class="min-w-0 flex-1">
-        <p class="text-xs font-medium text-gray-500">{{ t('usage.totalCost') }}</p>
-        <p class="text-xl font-bold text-green-600">
-          ${{ (stats?.total_actual_cost || 0).toFixed(4) }}
-        </p>
-        <p class="text-xs text-gray-400">
-          <template v-if="showAccountCost && totalAccountCost != null">
-            <span class="text-orange-500">{{ t('usage.accountCost') }} ${{ totalAccountCost.toFixed(4) }}</span>
-            <span> · </span>
-          </template>
-          <span>
-            {{ t('usage.standardCost') }}
-            <span :class="{ 'line-through': strikeStandardCost }">${{ (stats?.total_cost || 0).toFixed(4) }}</span>
+          <span class="mt-1 flex items-center justify-between gap-3">
+            <span>{{ t('usage.cacheReadTokensLabel') }}</span>
+            <span class="tabular-nums">
+              {{ formatTokens(stats?.total_cache_read_tokens || 0) }}
+            </span>
           </span>
-        </p>
-      </div>
-    </div>
-    <div class="card p-4 flex items-center gap-3">
-      <div class="rounded-lg bg-purple-100 p-2 dark:bg-purple-900/30 text-purple-600">
-        <Icon name="clock" size="md" />
-      </div>
-      <div><p class="text-xs font-medium text-gray-500">{{ t('usage.avgDuration') }}</p><p class="text-xl font-bold">{{ formatDuration(stats?.average_duration_ms || 0) }}</p></div>
-    </div>
-  </div>
+        </span>
+      </span>
+    </template>
+    <template #detail-totalCost>
+      <span v-if="showAccountCost && totalAccountCost != null" class="metric-part">{{ t('usage.accountCost') }} <b>${{ totalAccountCost.toFixed(4) }}</b></span>
+      <span class="metric-part">
+        {{ t('usage.standardCost') }}
+        <b :class="{ 'line-through': strikeStandardCost }">${{ (stats?.total_cost || 0).toFixed(4) }}</b>
+      </span>
+    </template>
+  </MetricStrip>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { AdminUsageStatsResponse } from '@/api/admin/usage'
 import type { UsageStatsResponse } from '@/types'
 import Icon from '@/components/icons/Icon.vue'
+import MetricStrip, { type MetricStripItem } from '@/components/charts/MetricStrip.vue'
 
 const props = withDefaults(defineProps<{
   stats: (AdminUsageStatsResponse | UsageStatsResponse) | null
@@ -105,6 +61,8 @@ const props = withDefaults(defineProps<{
 })
 
 const { t } = useI18n()
+
+const EMPTY_VALUE = '—'
 
 const totalAccountCost = computed(() => {
   const stats = props.stats as (AdminUsageStatsResponse & { total_account_cost?: number }) | null
@@ -123,6 +81,21 @@ const formatTokens = (value: number) => {
   return value.toLocaleString()
 }
 
-const cacheLabel = () => t('usage.cacheTotal')
-const cacheDetailLabel = () => t('usage.cacheBreakdown')
+const metricItems = computed<MetricStripItem[]>(() => {
+  const stats = props.stats
+  return [
+    { key: 'totalRequests', label: t('usage.totalRequests'), value: stats ? (stats.total_requests?.toLocaleString() || '0') : EMPTY_VALUE, detail: t('usage.inSelectedRange') },
+    { key: 'totalTokens', label: t('usage.totalTokens'), value: stats ? formatTokens(stats.total_tokens || 0) : EMPTY_VALUE },
+    { key: 'totalCost', label: t('usage.totalCost'), value: stats ? `$${(stats.total_actual_cost || 0).toFixed(4)}` : EMPTY_VALUE },
+    { key: 'avgDuration', label: t('usage.avgDuration'), value: stats ? formatDuration(stats.average_duration_ms || 0) : EMPTY_VALUE },
+  ]
+})
+
+const TOOLTIP_WIDTH = 224
+const cacheTooltipStyle = ref<Record<string, string>>({})
+const placeCacheTooltip = (event: Event) => {
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  const left = Math.min(Math.max(8, rect.left + rect.width / 2 - TOOLTIP_WIDTH / 2), window.innerWidth - TOOLTIP_WIDTH - 8)
+  cacheTooltipStyle.value = { top: `${rect.bottom + 8}px`, left: `${left}px` }
+}
 </script>
